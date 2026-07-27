@@ -3,7 +3,21 @@ import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
 import type { Product } from '@product-types/product';
 
-const dataDirectory = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../../data');
+let dataDirectory = '';
+try {
+  const cwd = process.cwd();
+  if (cwd.includes('apps/web') || cwd.includes('apps\\web')) {
+    dataDirectory = path.join(cwd, 'data');
+  } else {
+    dataDirectory = path.join(cwd, 'apps/web/data');
+  }
+} catch {
+  try {
+    dataDirectory = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../../data');
+  } catch {
+    dataDirectory = './data';
+  }
+}
 
 const isKvEnabled = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
 
