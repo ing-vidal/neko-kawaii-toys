@@ -1,0 +1,13 @@
+[
+  {
+    "id": "mikoto-figure",
+    "name": "Figura Mikoto",
+    "description": "Figura de colección con detalles en resina y pintura premium.",
+    "price": 100,
+    "category": "Figuras",
+    "image": "/images/product-1.svg",
+    "stock": 12,
+    "rating": 4.9,
+    "reviews": 34
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "name": "neko-kawaii-toys",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@8.10.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "lint": "pnpm --filter web lint",
+    "typecheck": "pnpm --filter web typecheck"
+  }
+}

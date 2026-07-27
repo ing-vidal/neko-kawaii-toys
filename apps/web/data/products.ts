@@ -1,0 +1,215 @@
+import { Product } from '@product-types/product';
+
+const products: Product[] = [
+  {
+    id: 'mikoto-figure',
+    name: 'Figura Mikoto',
+    description: 'Figura de colección con detalles en resina y pintura premium.',
+    price: 68,
+    category: 'Figuras',
+    image: '/images/product-1.svg',
+    stock: 12,
+    rating: 4.9,
+    reviews: 34
+  },
+  {
+    id: 'luna-plush',
+    name: 'Peluche Luna',
+    description: 'Peluche suave en tono pastel, ideal para decorar y abrazar.',
+    price: 28,
+    category: 'Peluches',
+    image: '/images/product-2.svg',
+    stock: 20,
+    rating: 4.8,
+    reviews: 48
+  },
+  {
+    id: 'ninja-hana',
+    name: 'Figura Ninja Hana',
+    description: 'Figura articulada con accesorios intercambiables.',
+    price: 72,
+    category: 'Figuras',
+    image: '/images/product-3.svg',
+    stock: 9,
+    rating: 4.7,
+    reviews: 26
+  },
+  {
+    id: 'anime-starter-kit',
+    name: 'Kit Anime Premium',
+    description: 'Colección limitada con llavero, pegatinas y tarjeta especial.',
+    price: 42,
+    category: 'Coleccionables',
+    image: '/images/product-4.svg',
+    stock: 14,
+    rating: 4.9,
+    reviews: 71
+  },
+  {
+    id: 'kawaii-earrings',
+    name: 'Pendientes Kawaii',
+    description: 'Accesorios suaves con diseño japonés y cierre seguro.',
+    price: 18,
+    category: 'Accesorios',
+    image: '/images/product-5.svg',
+    stock: 24,
+    rating: 4.6,
+    reviews: 19
+  },
+  {
+    id: 'chibi-collector',
+    name: 'Chibi Collector',
+    description: 'Figura coleccionable edición especial para vitrinas.',
+    price: 85,
+    category: 'Coleccionables',
+    image: '/images/product-1.svg',
+    stock: 7,
+    rating: 4.8,
+    reviews: 38
+  },
+  {
+    id: 'shiba-keychain',
+    name: 'Llavero Shiba',
+    description: 'Llavero suave con detalles kawaii y cadena metálica.',
+    price: 12,
+    category: 'Accesorios',
+    image: '/images/product-2.svg',
+    stock: 30,
+    rating: 4.7,
+    reviews: 54
+  },
+  {
+    id: 'white-kitty',
+    name: 'Gatito de Colección',
+    description: 'Figura en acabado perlado con packaging premium.',
+    price: 58,
+    category: 'Figuras',
+    image: '/images/product-3.svg',
+    stock: 10,
+    rating: 4.8,
+    reviews: 40
+  },
+  {
+    id: 'cosplay-hoodie',
+    name: 'Hoodie Cosplay',
+    description: 'Sudadera cómoda con detalles inspirados en personajes.',
+    price: 52,
+    category: 'Accesorios',
+    image: '/images/product-4.svg',
+    stock: 18,
+    rating: 4.5,
+    reviews: 22
+  },
+  {
+    id: 'sakura-pillow',
+    name: 'Cojín Sakura',
+    description: 'Cojín decorativo con bordado en rosa y lila.',
+    price: 34,
+    category: 'Peluches',
+    image: '/images/product-5.svg',
+    stock: 16,
+    rating: 4.8,
+    reviews: 29
+  },
+  {
+    id: 'anime-poster',
+    name: 'Póster Kawaii',
+    description: 'Póster artístico premium para pared creativa.',
+    price: 22,
+    category: 'Coleccionables',
+    image: '/images/product-1.svg',
+    stock: 26,
+    rating: 4.4,
+    reviews: 12
+  },
+  {
+    id: 'mochi-bag',
+    name: 'Bolso Mochi',
+    description: 'Bolso bandolera con silueta kawaii y tela suave.',
+    price: 44,
+    category: 'Accesorios',
+    image: '/images/product-2.svg',
+    stock: 14,
+    rating: 4.7,
+    reviews: 33
+  },
+  {
+    id: 'pink-cat-plush',
+    name: 'Peluche Gato Rosa',
+    description: 'Peluche grande con textura aterciopelada y diseño premium.',
+    price: 39,
+    category: 'Peluches',
+    image: '/images/product-3.svg',
+    stock: 11,
+    rating: 4.9,
+    reviews: 65
+  },
+  {
+    id: 'star-stone-set',
+    name: 'Set de Piedras',
+    description: 'Coleccionables de edición limitada con brillo suave.',
+    price: 30,
+    category: 'Coleccionables',
+    image: '/images/product-4.svg',
+    stock: 13,
+    rating: 4.6,
+    reviews: 21
+  },
+  {
+    id: 'retro-anime-pin',
+    name: 'Pin Retro Anime',
+    description: 'Pin metálico con esmaltado de alta calidad.',
+    price: 14,
+    category: 'Accesorios',
+    image: '/images/product-5.svg',
+    stock: 33,
+    rating: 4.5,
+    reviews: 38
+  },
+  {
+    id: 'kawaii-tea-set',
+    name: 'Set de Té',
+    description: 'Miniatura de set de té estilo kawaii para colección.',
+    price: 49,
+    category: 'Coleccionables',
+    image: '/images/product-1.svg',
+    stock: 9,
+    rating: 4.8,
+    reviews: 27
+  },
+  {
+    id: 'starry-headband',
+    name: 'Diadema Estelar',
+    description: 'Accesorio brillante con detalles de estrellas y lazo.',
+    price: 16,
+    category: 'Accesorios',
+    image: '/images/product-2.svg',
+    stock: 25,
+    rating: 4.6,
+    reviews: 18
+  },
+  {
+    id: 'sakura-blossom',
+    name: 'Figura Sakura',
+    description: 'Figura artística con acabado suave y base elegante.',
+    price: 76,
+    category: 'Figuras',
+    image: '/images/product-3.svg',
+    stock: 8,
+    rating: 4.9,
+    reviews: 42
+  },
+  {
+    id: 'kawaii-cushion',
+    name: 'Cojín Kawaii',
+    description: 'Cojín para sala con estampado exclusivo y tacto suave.',
+    price: 32,
+    category: 'Peluches',
+    image: '/images/product-4.svg',
+    stock: 19,
+    rating: 4.7,
+    reviews: 36
+  }
+];
+
+export default products;
