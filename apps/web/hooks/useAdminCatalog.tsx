@@ -35,19 +35,28 @@ export function useAdminCatalog(initialProducts: Product[]) {
     refreshCatalog();
   }, []);
 
-  const addProduct = async (product: Product) => {
-    const response = await fetchJson<Product[]>('/api/admin/products', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(product),
-    });
+  const addProduct = async (product: Product): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const response = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(product),
+      });
 
-    if (response) {
-      setAdminProducts(response);
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        return { success: false, error: errData.error || `HTTP ${response.status}` };
+      }
+
+      const nextProducts = (await response.json()) as Product[];
+      setAdminProducts(nextProducts);
       setDeletedProductIds((current) => current.filter((id) => id !== product.id));
       if (!adminCategories.includes(product.category)) {
         setAdminCategories((current) => Array.from(new Set([...current, product.category])));
       }
+      return { success: true };
+    } catch (e) {
+      return { success: false, error: e instanceof Error ? e.message : 'Error de red' };
     }
   };
 

@@ -45,6 +45,7 @@ export default function AdminPage() {
   const [adminPasswordError, setAdminPasswordError] = useState('');
   const [newAdminPassword, setNewAdminPassword] = useState('');
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [productError, setProductError] = useState<string | null>(null);
 
   const { authenticated, unlock, lock, setAdminPassword: setStoredAdminPassword, defaultPassword } = useAdminAccess();
 
@@ -119,6 +120,7 @@ export default function AdminPage() {
   const handleAddProduct = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!name.trim()) return;
+    setProductError(null);
 
     const id = editingProductId ?? createProductId(name);
     const product: Product = {
@@ -136,7 +138,12 @@ export default function AdminPage() {
     if (!availableCategories.includes(selectedCategory)) {
       await addCategory(selectedCategory);
     }
-    await addProduct(product);
+    
+    const result = await addProduct(product);
+    if (!result.success) {
+      setProductError(result.error || 'Error al guardar el producto');
+      return;
+    }
 
     // Reset form after saving
     setName('');
@@ -487,6 +494,11 @@ export default function AdminPage() {
               <span className="text-sm text-slate-600">Stock: {stock}</span>
             </div>
             <div className="space-y-2">
+              {productError && (
+                <div className="p-3 text-xs text-rose-600 bg-rose-50 rounded-2xl border border-rose-100">
+                  {productError}
+                </div>
+              )}
               <Button type="submit" className="w-full">
                 {editingProductId ? 'Guardar cambios' : 'Guardar producto'}
               </Button>
