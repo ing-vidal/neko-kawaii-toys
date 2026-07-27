@@ -10,13 +10,6 @@ import { useAdminCatalog } from '@hooks/useAdminCatalog';
 import { getProducts } from '@lib/utils';
 import { compressImage } from '@lib/image';
 
-const imageOptions = [
-  '/images/product-1.svg',
-  '/images/product-2.svg',
-  '/images/product-3.svg',
-  '/images/product-4.svg',
-  '/images/product-5.svg'
-];
 
 function createProductId(name: string) {
   return name
@@ -35,8 +28,8 @@ export default function AdminPage() {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('20');
   const [selectedCategory, setSelectedCategory] = useState(availableCategories[0] ?? 'Figuras');
-  const [image, setImage] = useState(imageOptions[0]);
-  const [imagePreview, setImagePreview] = useState(imageOptions[0]);
+  const [image, setImage] = useState('');
+  const [imagePreview, setImagePreview] = useState('');
   const [stock, setStock] = useState('10');
   const [rating, setRating] = useState('4.8');
   const [reviews, setReviews] = useState('10');
@@ -111,8 +104,8 @@ export default function AdminPage() {
     setDescription('');
     setPrice('20');
     setSelectedCategory(availableCategories[0] ?? 'Figuras');
-    setImage(imageOptions[0]);
-    setImagePreview(imageOptions[0]);
+    setImage('');
+    setImagePreview('');
     setStock('10');
     setRating('4.8');
     setReviews('10');
@@ -122,6 +115,11 @@ export default function AdminPage() {
     event.preventDefault();
     if (!name.trim()) return;
     setProductError(null);
+
+    if (!image) {
+      setProductError('Por favor, selecciona una imagen para el producto.');
+      return;
+    }
 
     const id = editingProductId ?? createProductId(name);
     const product: Product = {
@@ -151,8 +149,8 @@ export default function AdminPage() {
     setDescription('');
     setPrice('20');
     setSelectedCategory(availableCategories[0] ?? 'Figuras');
-    setImage(imageOptions[0]);
-    setImagePreview(imageOptions[0]);
+    setImage('');
+    setImagePreview('');
     setStock('10');
     setRating('4.8');
     setReviews('10');
@@ -419,20 +417,8 @@ export default function AdminPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-textPrimary">Imagen</label>
+                <label className="block text-sm font-medium text-textPrimary">Imagen del producto</label>
                 <div className="space-y-3">
-                  <select
-                    value={image}
-                    onChange={(event) => setImage(event.target.value)}
-                    className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-textPrimary outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
-                  >
-                    {imageOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                  <label className="block text-sm font-medium text-textPrimary">O sube una imagen desde tu computadora</label>
                   <input
                     type="file"
                     accept="image/*"
@@ -448,11 +434,15 @@ export default function AdminPage() {
                         }
                       }
                     }}
-                    className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-textPrimary outline-none"
+                    className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-textPrimary outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
                   />
-                  {imagePreview && (
+                  {imagePreview ? (
                     <div className="mt-3 overflow-hidden rounded-3xl border border-slate-200 bg-white">
                       <img src={imagePreview} alt="Vista previa del producto" className="h-40 w-full object-contain" />
+                    </div>
+                  ) : (
+                    <div className="mt-3 flex h-40 items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
+                      Ninguna imagen seleccionada
                     </div>
                   )}
                 </div>

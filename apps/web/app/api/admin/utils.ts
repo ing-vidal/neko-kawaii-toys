@@ -80,6 +80,11 @@ async function writeJson<T>(filename: string, data: T): Promise<void> {
     return;
   }
 
+  // Check if we are running in Vercel production without KV
+  if (process.env.VERCEL) {
+    throw new Error('No se pueden guardar cambios: Vercel KV no está configurado (faltan KV_REST_API_URL y KV_REST_API_TOKEN en las variables de entorno de Vercel).');
+  }
+
   const filePath = path.join(dataDirectory, filename);
   await ensureDataDir();
   await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
