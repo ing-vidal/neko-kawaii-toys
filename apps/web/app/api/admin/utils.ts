@@ -103,7 +103,32 @@ export const defaultAdminConfig: AdminConfigData = {
 };
 
 export async function readAdminConfig(): Promise<AdminConfigData> {
-  return readJson<AdminConfigData>('admin-config.json', defaultAdminConfig);
+  const config = await readJson<AdminConfigData>('admin-config.json', defaultAdminConfig);
+  let needsWriteBack = false;
+  const cleanedConfig = { ...config };
+
+  if (config.logoUrl && config.logoUrl.startsWith('data:') && config.logoUrl.length > 300000) {
+    needsWriteBack = true;
+    console.log(`Auto-healing config logo: too large (${config.logoUrl.length} chars). Replacing with empty string.`);
+    cleanedConfig.logoUrl = '';
+  }
+
+  if (config.bannerUrl && config.bannerUrl.startsWith('data:') && config.bannerUrl.length > 500000) {
+    needsWriteBack = true;
+    console.log(`Auto-healing config banner: too large (${config.bannerUrl.length} chars). Replacing with empty string.`);
+    cleanedConfig.bannerUrl = '';
+  }
+
+  if (needsWriteBack) {
+    try {
+      await writeAdminConfig(cleanedConfig);
+      console.log('Successfully wrote back cleaned config to database.');
+    } catch (e) {
+      console.error('Failed to write back cleaned config:', e);
+    }
+  }
+
+  return cleanedConfig;
 }
 
 export async function writeAdminConfig(config: AdminConfigData): Promise<void> {
@@ -119,7 +144,30 @@ export async function writeAdminCategories(categories: string[]): Promise<void> 
 }
 
 export async function readAdminProducts(): Promise<Product[]> {
-  return readJson<Product[]>('admin-products.json', []);
+  const products = await readJson<Product[]>('admin-products.json', []);
+  let needsWriteBack = false;
+  const cleanedProducts = products.map((product) => {
+    if (product.image && product.image.startsWith('data:') && product.image.length > 300000) {
+      needsWriteBack = true;
+      console.log(`Auto-healing product ${product.id}: image too large (${product.image.length} chars). Replacing with empty string.`);
+      return {
+        ...product,
+        image: '',
+      };
+    }
+    return product;
+  });
+
+  if (needsWriteBack) {
+    try {
+      await writeAdminProducts(cleanedProducts);
+      console.log('Successfully wrote back cleaned products to database.');
+    } catch (e) {
+      console.error('Failed to write back cleaned products:', e);
+    }
+  }
+
+  return cleanedProducts;
 }
 
 export async function writeAdminProducts(products: Product[]): Promise<void> {

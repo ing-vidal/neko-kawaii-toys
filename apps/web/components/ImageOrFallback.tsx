@@ -8,10 +8,14 @@ interface ImageOrFallbackProps {
   className?: string;
 }
 
+const defaultPlaceholder = 'https://placehold.co/600x400/fff0f5/db7093?text=Kawaii+Toy';
+
 export function ImageOrFallback({ src, alt, width, height, className = '' }: ImageOrFallbackProps) {
-  if (src.startsWith('data:')) {
-    return <img src={src} alt={alt} className={className} />;
+  const imageSrc = src || defaultPlaceholder;
+
+  if (imageSrc.startsWith('data:')) {
+    return <img src={imageSrc} alt={alt} className={className} />;
   }
 
-  return <Image src={src} alt={alt} width={width} height={height} className={className} />;
+  return <Image src={imageSrc} alt={alt} width={width} height={height} className={className} />;
 }
