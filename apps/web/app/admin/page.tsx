@@ -21,7 +21,56 @@ function createProductId(name: string) {
 
 export default function AdminPage() {
   const { whatsappNumber, setWhatsappNumber, logoUrl, bannerUrl, setLogoUrl, setBannerUrl, addCategory } = useAdminConfig();
-  const { products: catalogProducts, categories: availableCategories, addProduct, deleteProduct } = useAdminCatalog(getProducts());
+  const { products: catalogProducts, categories: availableCategories, addProduct, deleteProduct, refreshCatalog } = useAdminCatalog(getProducts());
+  const [isClearingCatalog, setIsClearingCatalog] = useState(false);
+
+  const handleClearCatalog = async () => {
+    if (!confirm('¿Estás seguro de que deseas restablecer el catálogo por completo? Esto eliminará todos tus productos agregados.')) {
+      return;
+    }
+    setIsClearingCatalog(true);
+    try {
+      const res = await fetch('/api/admin/products?clear=true');
+      if (res.ok) {
+        await refreshCatalog();
+        alert('Catálogo restablecido correctamente.');
+      } else {
+        alert('Error al restablecer el catálogo.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error de red al restablecer el catálogo.');
+    } finally {
+      setIsClearingCatalog(false);
+    }
+  };
+
+  const handleClearConfig = async () => {
+    if (!confirm('¿Estás seguro de que deseas restablecer la configuración de branding y WhatsApp a los valores predeterminados?')) {
+      return;
+    }
+    try {
+      const res = await fetch('/api/admin/config?clear=true');
+      if (res.ok) {
+        const data = await res.json();
+        setWhatsappNumber(data.whatsappNumber || '');
+        setLogoUrl(data.logoUrl || '');
+        setLogoPreview(data.logoUrl || '');
+        setBannerUrl(data.bannerUrl || '');
+        setBannerPreview(data.bannerUrl || '');
+        alert('Configuración de branding restablecida correctamente.');
+      } else {
+        alert('Error al restablecer la configuración.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error de red al restablecer la configuración.');
+    }
+  };
+
+  const bloatedProducts = catalogProducts.filter(p => p.image && p.image.startsWith('data:') && p.image.length > 300000);
+  const isLogoBloated = logoUrl && logoUrl.startsWith('data:') && logoUrl.length > 300000;
+  const isBannerBloated = bannerUrl && bannerUrl.startsWith('data:') && bannerUrl.length > 500000;
 
   const [categoryName, setCategoryName] = useState('');
   const [name, setName] = useState('');
@@ -216,6 +265,44 @@ export default function AdminPage() {
           </Button>
         </div>
       </div>
+
+      {bloatedProducts.length > 0 && (
+        <div className="mb-8 p-5 text-sm text-amber-800 bg-amber-50 rounded-[28px] border border-amber-200 shadow-sm space-y-3">
+          <div className="font-semibold flex items-center gap-2 text-base text-amber-900">
+            <span>⚠️</span> Atención: Productos con imágenes sin comprimir detectados
+          </div>
+          <p>
+            Se detectaron <strong>{bloatedProducts.length}</strong> productos con imágenes excesivamente grandes (subidas anteriormente sin compresión). 
+            Esto está provocando el error <code>max request size exceeded</code> en Vercel KV al intentar guardar nuevos productos.
+          </p>
+          <p>
+            <strong>Solución recomendada:</strong> Elimina esos productos y vuelve a crearlos usando la nueva compresión de imágenes. O si lo prefieres, puedes:
+          </p>
+          <div>
+            <Button type="button" onClick={handleClearCatalog} disabled={isClearingCatalog} className="bg-amber-600 hover:bg-amber-700 text-white text-xs px-4 py-2 rounded-2xl">
+              {isClearingCatalog ? 'Restableciendo...' : 'Restablecer catálogo por completo'}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {(isLogoBloated || isBannerBloated) && (
+        <div className="mb-8 p-5 text-sm text-amber-800 bg-amber-50 rounded-[28px] border border-amber-200 shadow-sm space-y-3">
+          <div className="font-semibold flex items-center gap-2 text-base text-amber-900">
+            <span>⚠️</span> Atención: Logo o Banner sin comprimir detectado
+          </div>
+          <p>
+            El logotipo o banner guardados actualmente ocupan mucho espacio. Te sugerimos volver a subirlos en la sección de **Branding** (abajo) para aplicar la compresión automática y reducir el uso de base de datos en Vercel. 
+            También puedes restablecerlos haciendo clic en el botón de abajo.
+          </p>
+          <div>
+            <Button type="button" onClick={handleClearConfig} className="bg-amber-600 hover:bg-amber-700 text-white text-xs px-4 py-2 rounded-2xl">
+              Restablecer Branding a Valores por Defecto
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
         <section className="space-y-8 rounded-[40px] border border-slate-200 bg-white p-8 shadow-soft">
           <div className="space-y-4">

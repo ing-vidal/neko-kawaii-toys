@@ -1,13 +1,26 @@
 import { NextResponse } from 'next/server';
-import { readAdminConfig, writeAdminConfig } from '../utils';
+import { readAdminConfig, writeAdminConfig, defaultAdminConfig } from '../utils';
 
-export async function GET() {
-  const config = await readAdminConfig();
-  const isKvEnabled = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
-  return NextResponse.json({
-    ...config,
-    kvConfigured: isKvEnabled
-  });
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const isKvEnabled = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+    if (searchParams.get('clear') === 'true') {
+      await writeAdminConfig(defaultAdminConfig);
+      return NextResponse.json({
+        ...defaultAdminConfig,
+        kvConfigured: isKvEnabled
+      });
+    }
+    const config = await readAdminConfig();
+    return NextResponse.json({
+      ...config,
+      kvConfigured: isKvEnabled
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
