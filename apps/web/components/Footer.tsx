@@ -23,11 +23,6 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="hover:text-accent">
-                  Nuestra historia
-                </Link>
-              </li>
-              <li>
                 <Link href="/contact" className="hover:text-accent">
                   Contacto
                 </Link>

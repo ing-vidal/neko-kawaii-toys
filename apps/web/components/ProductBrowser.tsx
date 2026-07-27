@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Button } from './Button';
 import { ProductGrid } from './ProductGrid';
 import { SearchBar } from './SearchBar';
+import { ProductCarousel } from './ProductCarousel';
 import type { Product } from '@product-types/product';
 import { useLocalCatalog } from '@hooks/useLocalCatalog';
 
@@ -35,8 +36,11 @@ export function ProductBrowser({ products }: ProductBrowserProps) {
 
   return (
     <section className="space-y-8">
-      <div className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
-        <SearchBar value={query} onChange={setQuery} />
+      <div className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr] items-stretch">
+        <div className="flex flex-col justify-between gap-4 h-full">
+          <SearchBar value={query} onChange={setQuery} />
+          <ProductCarousel products={mergedProducts} />
+        </div>
         <div className="grid gap-3 rounded-[28px] border border-slate-200 bg-white p-5 shadow-soft">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-accent">Filtrar</p>
           <div className="grid gap-2">

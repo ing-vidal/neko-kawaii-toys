@@ -7,11 +7,7 @@ import { useAdminConfig } from '@hooks/useAdminConfig';
 import { CartIcon } from './CartIcon';
 
 const navItems = [
-  { label: 'Inicio', href: '/' },
   { label: 'Productos', href: '/products' },
-  { label: 'Categorías', href: '/categories/Figuras' },
-  { label: 'Ofertas', href: '/products' },
-  { label: 'Nosotros', href: '/about' },
   { label: 'Contacto', href: '/contact' }
 ];
 
@@ -24,7 +20,7 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-40 border-b border-white/70 bg-white/95 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-3 text-lg font-bold text-textPrimary">
+        <Link href="/products" className="flex items-center gap-3 text-lg font-bold text-textPrimary">
           {logoUrl ? (
             <img src={logoUrl} alt="Logo de Neko Kawaii Toys" className="h-10 w-10 rounded-2xl object-cover" />
           ) : (

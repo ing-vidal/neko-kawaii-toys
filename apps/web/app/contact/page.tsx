@@ -11,7 +11,7 @@ export default function ContactPage() {
       <div className="grid gap-8 lg:grid-cols-2">
         <div className="rounded-[40px] border border-slate-200 bg-white p-8 shadow-soft">
           <h2 className="text-2xl font-semibold text-textPrimary">Escríbenos</h2>
-          <p className="mt-4 text-slate-600">hola@nekokawaiitoys.com</p>
+          <p className="mt-4 text-slate-600">nekokawaiitoys@gmail.com</p>
           <p className="mt-6 text-sm text-slate-500">Nuestro horario de atención es de lunes a viernes de 9:00 a 18:00.</p>
         </div>
         <div className="rounded-[40px] border border-slate-200 bg-white p-8 shadow-soft">
