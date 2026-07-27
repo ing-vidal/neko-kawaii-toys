@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { CategoryCard } from '@components/CategoryCard';
 import { Hero } from '@components/Hero';
 import { Newsletter } from '@components/Newsletter';
-import { ProductGrid } from '@components/ProductGrid';
+import { FeaturedProductsClient } from '@components/FeaturedProductsClient';
 import { getFeaturedProducts } from '@lib/utils';
 
 const categories = [
@@ -61,7 +61,7 @@ export default function HomePage() {
           </div>
 
           <div className="mt-8">
-            <ProductGrid products={products} />
+            <FeaturedProductsClient initialProducts={products} />
           </div>
         </section>
 

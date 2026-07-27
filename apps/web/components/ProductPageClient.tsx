@@ -14,9 +14,8 @@ export function ProductPageClient({ productId, staticProduct }: ProductPageClien
   const { products } = useAdminCatalog(staticProduct ? [staticProduct] : []);
 
   const product = useMemo(() => {
-    if (staticProduct) return staticProduct;
     return products.find((item) => item.id === productId);
-  }, [products, productId, staticProduct]);
+  }, [products, productId]);
 
   if (!product) {
     return (
