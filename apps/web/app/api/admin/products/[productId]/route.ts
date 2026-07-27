@@ -16,16 +16,22 @@ export async function GET(request: Request, { params }: { params: { productId: s
 }
 
 export async function DELETE(request: Request, { params }: { params: { productId: string } }) {
-  const productId = params.productId;
-  const products = await readAdminProducts();
-  const deletedProducts = await readDeletedProducts();
+  try {
+    const productId = params.productId;
+    const products = await readAdminProducts();
+    const deletedProducts = await readDeletedProducts();
 
-  const nextProducts = products.filter((item) => item.id !== productId);
-  await writeAdminProducts(nextProducts);
+    const nextProducts = products.filter((item) => item.id !== productId);
+    await writeAdminProducts(nextProducts);
 
-  if (!deletedProducts.includes(productId)) {
-    await writeDeletedProducts([...deletedProducts, productId]);
+    if (!deletedProducts.includes(productId)) {
+      await writeDeletedProducts([...deletedProducts, productId]);
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('Error deleting product:', error);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  return NextResponse.json({ success: true });
 }

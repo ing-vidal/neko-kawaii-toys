@@ -30,6 +30,9 @@ async function readJson<T>(filename: string, defaultValue: T): Promise<T> {
           const val = data.result;
           return typeof val === 'string' ? (JSON.parse(val) as T) : (val as T);
         }
+      } else {
+        const errText = await response.text();
+        console.error(`Vercel KV read returned non-OK: ${response.status} ${errText}`);
       }
     } catch (e) {
       console.error('Error reading from Vercel KV:', e);
@@ -38,48 +41,34 @@ async function readJson<T>(filename: string, defaultValue: T): Promise<T> {
 
   const filePath = path.join(dataDirectory, filename);
   try {
-    await ensureDataDir();
     const raw = await fs.readFile(filePath, 'utf-8');
     return JSON.parse(raw) as T;
   } catch {
-    try {
-      await fs.writeFile(filePath, JSON.stringify(defaultValue, null, 2), 'utf-8');
-    } catch {
-      // Ignore write errors on read-only environments
-    }
     return defaultValue;
   }
 }
 
 async function writeJson<T>(filename: string, data: T): Promise<void> {
   if (isKvEnabled) {
-    try {
-      const key = `neko_kawaii:${filename}`;
-      const response = await fetch(`${process.env.KV_REST_API_URL}/`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(['SET', key, JSON.stringify(data)]),
-      });
-      if (response.ok) {
-        return;
-      }
-    } catch (e) {
-      console.error('Error writing to Vercel KV:', e);
+    const key = `neko_kawaii:${filename}`;
+    const response = await fetch(`${process.env.KV_REST_API_URL}/`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(['SET', key, JSON.stringify(data)]),
+    });
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Vercel KV write failed: ${response.status} ${errText}`);
     }
+    return;
   }
 
   const filePath = path.join(dataDirectory, filename);
   await ensureDataDir();
-  try {
-    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
-  } catch (err) {
-    if (!isKvEnabled) {
-      throw err;
-    }
-  }
+  await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
 }
 
 export interface AdminConfigData {
