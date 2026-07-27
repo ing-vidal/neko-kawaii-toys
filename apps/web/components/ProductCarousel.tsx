@@ -1,5 +1,6 @@
 'use client';
 
+// Componente de Carrusel de Productos Kawaii - Trigger Vercel rebuild
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Product } from '@product-types/product';
