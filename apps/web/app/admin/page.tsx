@@ -8,6 +8,7 @@ import { useAdminAccess } from '@hooks/useAdminAccess';
 import { useAdminConfig } from '@hooks/useAdminConfig';
 import { useAdminCatalog } from '@hooks/useAdminCatalog';
 import { getProducts } from '@lib/utils';
+import { compressImage } from '@lib/image';
 
 const imageOptions = [
   '/images/product-1.svg',
@@ -71,24 +72,24 @@ export default function AdminPage() {
     setCategoryName('');
   };
 
-  const handleLogoUpload = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const value = reader.result as string;
-      setLogoUrl(value);
-      setLogoPreview(value);
-    };
-    reader.readAsDataURL(file);
+  const handleLogoUpload = async (file: File) => {
+    try {
+      const compressed = await compressImage(file, 400, 400, 0.85);
+      setLogoUrl(compressed);
+      setLogoPreview(compressed);
+    } catch (error) {
+      console.error('Error compressing logo:', error);
+    }
   };
 
-  const handleBannerUpload = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const value = reader.result as string;
-      setBannerUrl(value);
-      setBannerPreview(value);
-    };
-    reader.readAsDataURL(file);
+  const handleBannerUpload = async (file: File) => {
+    try {
+      const compressed = await compressImage(file, 1200, 400, 0.8);
+      setBannerUrl(compressed);
+      setBannerPreview(compressed);
+    } catch (error) {
+      console.error('Error compressing banner:', error);
+    }
   };
 
   const handleEditClick = (product: Product) => {
@@ -435,16 +436,16 @@ export default function AdminPage() {
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(event) => {
+                    onChange={async (event) => {
                       const file = event.target.files?.[0];
                       if (file) {
-                        const reader = new FileReader();
-                        reader.onload = () => {
-                          const value = reader.result as string;
-                          setImage(value);
-                          setImagePreview(value);
-                        };
-                        reader.readAsDataURL(file);
+                        try {
+                          const compressed = await compressImage(file, 800, 800, 0.8);
+                          setImage(compressed);
+                          setImagePreview(compressed);
+                        } catch (error) {
+                          console.error('Error compressing product image:', error);
+                        }
                       }
                     }}
                     className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-textPrimary outline-none"
