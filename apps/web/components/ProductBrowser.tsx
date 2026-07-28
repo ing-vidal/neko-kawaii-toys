@@ -36,27 +36,25 @@ export function ProductBrowser({ products }: ProductBrowserProps) {
 
   return (
     <section className="space-y-8">
-      <div className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr] items-stretch">
-        <div className="flex flex-col justify-between gap-4 h-full">
-          <SearchBar value={query} onChange={setQuery} />
-          <ProductCarousel products={mergedProducts} />
-        </div>
-        <div className="grid gap-3 rounded-[28px] border border-slate-200 bg-white p-5 shadow-soft">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-accent">Filtrar</p>
-          <div className="grid gap-2">
-            {categories.map((categoryItem) => (
-              <Button
-                key={categoryItem}
-                type="button"
-                variant={categoryItem === category ? 'secondary' : 'ghost'}
-                className="w-full justify-start"
-                onClick={() => setCategory(categoryItem)}
-              >
-                {categoryItem}
-              </Button>
-            ))}
-          </div>
-        </div>
+      {/* Filtro de Categorías Horizontal */}
+      <div className="flex flex-nowrap overflow-x-auto gap-2 pb-2 -mx-5 px-5 sm:mx-0 sm:px-0 sm:flex-wrap items-center">
+        {categories.map((categoryItem) => (
+          <Button
+            key={categoryItem}
+            type="button"
+            variant={categoryItem === category ? 'primary' : 'secondary'}
+            className="whitespace-nowrap px-4 py-2.5 text-xs sm:px-5 sm:py-2.5 sm:text-sm font-medium"
+            onClick={() => setCategory(categoryItem)}
+          >
+            {categoryItem}
+          </Button>
+        ))}
+      </div>
+
+      {/* Buscador y Carrusel de Ancho Completo */}
+      <div className="flex flex-col gap-4">
+        <SearchBar value={query} onChange={setQuery} />
+        <ProductCarousel products={mergedProducts} />
       </div>
 
       <div className="rounded-[40px] border border-slate-200 bg-white p-6 shadow-soft">
