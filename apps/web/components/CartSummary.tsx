@@ -3,6 +3,7 @@
 import { Button } from './Button';
 import { useCart } from '@hooks/useCart';
 import { useAdminConfig } from '@hooks/useAdminConfig';
+import { ImageOrFallback } from './ImageOrFallback';
 
 function buildWhatsAppMessage(items: Array<{ product: { name: string; price: number }; quantity: number }>, subtotal: number) {
   const lines = ['Me interesan los siguientes productos:'];
@@ -46,17 +47,31 @@ export function CartSummary() {
       <div className="rounded-[40px] border border-slate-200 bg-white p-8 shadow-soft">
         <div className="space-y-6">
           {items.map((item) => (
-            <div key={item.product.id} className="grid gap-4 rounded-3xl border border-slate-100 bg-slate-50 p-5 sm:grid-cols-[1fr_auto] sm:items-center">
-              <div className="space-y-3">
+            <div key={item.product.id} className="grid gap-4 rounded-3xl border border-slate-100 bg-slate-50 p-5 sm:grid-cols-[auto_1fr_auto] sm:items-center">
+              {/* Imagen del producto */}
+              <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl bg-white border border-slate-200 p-2 flex items-center justify-center mx-auto sm:mx-0">
+                <ImageOrFallback
+                  src={item.product.image}
+                  alt={item.product.name}
+                  width={80}
+                  height={80}
+                  className="max-h-full w-auto object-contain"
+                />
+              </div>
+
+              {/* Detalles del producto */}
+              <div className="space-y-1.5 text-center sm:text-left">
                 <p className="text-sm font-semibold text-textPrimary">{item.product.name}</p>
-                <p className="text-sm text-slate-600">{item.product.category}</p>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
+                <p className="text-xs text-slate-500">{item.product.category}</p>
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1 text-sm text-slate-600">
                   <span>Precio: ${item.product.price}</span>
                   <span>Subtotal: ${item.product.price * item.quantity}</span>
                 </div>
               </div>
+
+              {/* Controles de cantidad y eliminar */}
               <div className="grid gap-3 text-right">
-                <div className="flex items-center justify-end gap-2">
+                <div className="flex items-center justify-center sm:justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
@@ -73,7 +88,7 @@ export function CartSummary() {
                     +
                   </button>
                 </div>
-                <div className="flex flex-wrap justify-end gap-2">
+                <div className="flex justify-center sm:justify-end">
                   <button
                     type="button"
                     onClick={() => removeProduct(item.product.id)}
