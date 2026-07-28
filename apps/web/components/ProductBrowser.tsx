@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from './Button';
 import { ProductGrid } from './ProductGrid';
 import { SearchBar } from './SearchBar';
@@ -24,15 +24,120 @@ export function ProductBrowser({ products }: ProductBrowserProps) {
     [adminCategories]
   );
 
-  const filteredProducts = useMemo(
-    () =>
-      mergedProducts.filter((product) => {
-        const matchesCategory = category === 'Todos' || product.category === category;
-        const matchesQuery = product.name.toLowerCase().includes(query.toLowerCase());
-        return matchesCategory && matchesQuery;
-      }),
-    [category, mergedProducts, query]
-  );
+  // Dynamic absolute min and max prices
+  const { absoluteMinPrice, absoluteMaxPrice } = useMemo(() => {
+    if (mergedProducts.length === 0) return { absoluteMinPrice: 0, absoluteMaxPrice: 100 };
+    const prices = mergedProducts.map((p) => p.price);
+    return {
+      absoluteMinPrice: Math.floor(Math.min(...prices)),
+      absoluteMaxPrice: Math.ceil(Math.max(...prices)),
+    };
+  }, [mergedProducts]);
+
+  // Price range filters state (null means using defaults)
+  const [minPriceState, setMinPriceState] = useState<number | null>(null);
+  const [maxPriceState, setMaxPriceState] = useState<number | null>(null);
+
+  const currentMinPrice = minPriceState ?? absoluteMinPrice;
+  const currentMaxPrice = maxPriceState ?? absoluteMaxPrice;
+
+  // Manual input values state
+  const [minInput, setMinInput] = useState<string>('');
+  const [maxInput, setMaxInput] = useState<string>('');
+
+  // Sync inputs with state changes
+  useEffect(() => {
+    setMinInput(currentMinPrice.toString());
+  }, [currentMinPrice]);
+
+  useEffect(() => {
+    setMaxInput(currentMaxPrice.toString());
+  }, [currentMaxPrice]);
+
+  // Sort option state
+  const [sortBy, setSortBy] = useState<string>('name-asc');
+
+  // Slider change handlers
+  const handleMinSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = Math.min(Number(e.target.value), currentMaxPrice);
+    setMinPriceState(val);
+  };
+
+  const handleMaxSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = Math.max(Number(e.target.value), currentMinPrice);
+    setMaxPriceState(val);
+  };
+
+  // Manual input change handlers
+  const handleMinInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setMinInput(val);
+    const num = Number(val);
+    if (!isNaN(num) && val !== '') {
+      setMinPriceState(Math.max(absoluteMinPrice, Math.min(num, currentMaxPrice)));
+    }
+  };
+
+  const handleMinInputBlur = () => {
+    let num = Number(minInput);
+    if (isNaN(num) || minInput === '') {
+      num = absoluteMinPrice;
+    }
+    const clamped = Math.max(absoluteMinPrice, Math.min(num, currentMaxPrice));
+    setMinPriceState(clamped);
+    setMinInput(clamped.toString());
+  };
+
+  const handleMaxInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setMaxInput(val);
+    const num = Number(val);
+    if (!isNaN(num) && val !== '') {
+      setMaxPriceState(Math.min(absoluteMaxPrice, Math.max(num, currentMinPrice)));
+    }
+  };
+
+  const handleMaxInputBlur = () => {
+    let num = Number(maxInput);
+    if (isNaN(num) || maxInput === '') {
+      num = absoluteMaxPrice;
+    }
+    const clamped = Math.min(absoluteMaxPrice, Math.max(num, currentMinPrice));
+    setMaxPriceState(clamped);
+    setMaxInput(clamped.toString());
+  };
+
+  // Percentages for slider styling
+  const minPercent = ((currentMinPrice - absoluteMinPrice) / (absoluteMaxPrice - absoluteMinPrice || 1)) * 100;
+  const maxPercent = ((currentMaxPrice - absoluteMinPrice) / (absoluteMaxPrice - absoluteMinPrice || 1)) * 100;
+
+  // Filter and sort products
+  const filteredAndSortedProducts = useMemo(() => {
+    let result = mergedProducts.filter((product) => {
+      const matchesCategory = category === 'Todos' || product.category === category;
+      const matchesQuery = product.name.toLowerCase().includes(query.toLowerCase());
+      const matchesPrice = product.price >= currentMinPrice && product.price <= currentMaxPrice;
+      return matchesCategory && matchesQuery && matchesPrice;
+    });
+
+    result = [...result].sort((a, b) => {
+      if (sortBy === 'name-asc') {
+        return a.name.localeCompare(b.name);
+      }
+      if (sortBy === 'name-desc') {
+        return b.name.localeCompare(a.name);
+      }
+      if (sortBy === 'price-asc') {
+        return a.price - b.price;
+      }
+      if (sortBy === 'price-desc') {
+        return b.price - a.price;
+      }
+      return 0;
+    });
+
+    return result;
+  }, [category, mergedProducts, query, currentMinPrice, currentMaxPrice, sortBy]);
 
   return (
     <section className="space-y-8">
@@ -58,17 +163,109 @@ export function ProductBrowser({ products }: ProductBrowserProps) {
       </div>
 
       <div className="rounded-[40px] border border-slate-200 bg-white p-6 shadow-soft">
-        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-6 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between border-b border-slate-100 pb-6">
           <div>
             <h2 className="text-2xl font-bold text-textPrimary">Resultados</h2>
             <p className="mt-2 text-sm text-slate-600">
-              {filteredProducts.length} productos encontrados{' '}
+              {filteredAndSortedProducts.length} productos encontrados{' '}
               {query ? `para «${query}»` : 'en el catálogo'}.
             </p>
           </div>
+
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-end lg:items-center">
+            {/* Rango de Precios */}
+            <div className="flex flex-col gap-2 min-w-[280px]">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Precio</span>
+                {(minPriceState !== null || maxPriceState !== null) && (
+                  <button
+                    onClick={() => {
+                      setMinPriceState(null);
+                      setMaxPriceState(null);
+                    }}
+                    className="text-xs font-medium text-accent hover:underline"
+                  >
+                    Limpiar rango
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="relative flex items-center">
+                  <span className="absolute left-2.5 text-xs text-slate-400 font-medium">$</span>
+                  <input
+                    type="number"
+                    value={minInput}
+                    onChange={handleMinInputChange}
+                    onBlur={handleMinInputBlur}
+                    className="w-16 rounded-xl border border-slate-200 py-1.5 pl-5 pr-1.5 text-center text-xs font-medium text-textPrimary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                  />
+                </div>
+
+                {/* Slider bar */}
+                <div className="relative flex-1 px-1 py-4">
+                  <div className="dual-range-slider relative w-full">
+                    {/* Track background */}
+                    <div className="absolute top-1/2 left-0 h-1.5 w-full -translate-y-1/2 rounded bg-slate-100" />
+                    {/* Highlighted track */}
+                    <div
+                      className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded bg-accent"
+                      style={{
+                        left: `${minPercent}%`,
+                        right: `${100 - maxPercent}%`,
+                      }}
+                    />
+                    {/* Intersecting native range inputs */}
+                    <input
+                      type="range"
+                      min={absoluteMinPrice}
+                      max={absoluteMaxPrice}
+                      value={currentMinPrice}
+                      onChange={handleMinSliderChange}
+                      className="absolute w-full"
+                    />
+                    <input
+                      type="range"
+                      min={absoluteMinPrice}
+                      max={absoluteMaxPrice}
+                      value={currentMaxPrice}
+                      onChange={handleMaxSliderChange}
+                      className="absolute w-full"
+                    />
+                  </div>
+                </div>
+
+                <div className="relative flex items-center">
+                  <span className="absolute left-2.5 text-xs text-slate-400 font-medium">$</span>
+                  <input
+                    type="number"
+                    value={maxInput}
+                    onChange={handleMaxInputChange}
+                    onBlur={handleMaxInputBlur}
+                    className="w-16 rounded-xl border border-slate-200 py-1.5 pl-5 pr-1.5 text-center text-xs font-medium text-textPrimary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Ordenación */}
+            <div className="flex flex-col gap-2 min-w-[180px]">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Ordenar por</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-textPrimary outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+              >
+                <option value="name-asc">Nombre: A-Z</option>
+                <option value="name-desc">Nombre: Z-A</option>
+                <option value="price-asc">Precio: Min-Max</option>
+                <option value="price-desc">Precio: Max-Min</option>
+              </select>
+            </div>
+          </div>
         </div>
-        <ProductGrid products={filteredProducts} />
+        <ProductGrid products={filteredAndSortedProducts} />
       </div>
     </section>
   );
 }
+
