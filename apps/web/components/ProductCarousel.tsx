@@ -29,8 +29,8 @@ export function ProductCarousel({ products }: ProductCarouselProps) {
   const currentProduct = carouselProducts[currentIndex];
 
   return (
-    <div className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-white p-2.5 shadow-soft h-[360px] group transition-all duration-300 hover:shadow-lg">
-      <Link href={`/products/${currentProduct.id}`} className="relative block h-full w-full overflow-hidden rounded-[22px] bg-slate-50">
+    <div className="relative overflow-hidden rounded-[36px] sm:rounded-[40px] border border-softPink/20 bg-white p-2.5 shadow-soft h-[360px] group transition-all duration-300 hover:shadow-lg">
+      <Link href={`/products/${currentProduct.id}`} className="relative block h-full w-full overflow-hidden rounded-[26px] bg-gradient-to-tr from-softPink/10 via-surface to-sky/20">
         
         {/* Imagen del producto animada */}
         <div className="relative flex h-full w-full items-center justify-center p-6 pb-28 transition-all duration-700 ease-out group-hover:scale-105">
@@ -43,24 +43,24 @@ export function ProductCarousel({ products }: ProductCarouselProps) {
           />
         </div>
 
-        {/* Gradiente oscuro inferior para legibilidad del texto */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-950/20 to-transparent" />
+        {/* Gradiente oscuro inferior adaptado para legibilidad del texto */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#3B3443]/85 via-[#3B3443]/30 to-transparent" />
 
         {/* Información del producto superpuesta (Glassmorphism parcial) */}
         <div className="absolute bottom-0 inset-x-0 p-6 text-white space-y-2">
-          <span className="inline-block rounded-full bg-accent/90 px-3 py-1 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
-            {currentProduct.category}
+          <span className="inline-block rounded-full bg-softPink text-textPrimary px-3 py-1 text-xs font-bold tracking-wider shadow-sm border border-white/40">
+            🌸 {currentProduct.category}
           </span>
           <div className="flex items-end justify-between gap-4">
             <div>
-              <h3 className="text-xl font-bold tracking-tight">{currentProduct.name}</h3>
-              <p className="text-sm text-slate-200/90 line-clamp-1 mt-1 max-w-[220px] sm:max-w-none">
+              <h3 className="text-xl font-bold tracking-tight text-white">{currentProduct.name}</h3>
+              <p className="text-sm text-slate-100/90 line-clamp-1 mt-1 max-w-[220px] sm:max-w-none">
                 {currentProduct.description}
               </p>
             </div>
             <div className="text-right">
-              <span className="block text-2xl font-black">${currentProduct.price}</span>
-              <span className="text-xs text-accent/20 font-semibold underline text-[#FFD700] hover:text-white transition-colors duration-200">
+              <span className="block text-2xl font-black text-white">${currentProduct.price}</span>
+              <span className="text-xs font-bold underline text-softPink hover:text-white transition-colors duration-200">
                 Ver detalles
               </span>
             </div>

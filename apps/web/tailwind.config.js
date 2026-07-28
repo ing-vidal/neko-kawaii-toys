@@ -4,13 +4,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        accent: '#7C61FF',
-        blush: '#F4D7F3',
-        softPink: '#FFF0F7',
-        textPrimary: '#1F1F2C',
+        accent: '#D8C8FF',
+        blush: '#F8C8DC',
+        softPink: '#F8C8DC',
+        textPrimary: '#4B4453',
+        sky: '#CDEBFF',
+        lavender: '#D8C8FF',
+        surface: '#FFF8FC'
       },
       boxShadow: {
-        soft: '0 25px 60px rgba(0, 0, 0, 0.08)',
+        soft: '0 12px 32px rgba(248, 200, 220, 0.18)',
       },
     },
   },

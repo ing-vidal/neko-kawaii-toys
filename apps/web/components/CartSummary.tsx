@@ -30,9 +30,9 @@ export function CartSummary() {
 
   if (items.length === 0) {
     return (
-      <div className="rounded-[40px] border border-slate-200 bg-white p-8 shadow-soft text-center">
-        <p className="text-lg font-semibold text-textPrimary">Tu carrito está vacío</p>
-        <p className="mt-3 text-sm text-slate-600">Añade tus figuras y accesorios kawaii favoritos antes de continuar.</p>
+      <div className="rounded-[36px] sm:rounded-[40px] border border-softPink/20 bg-white/70 backdrop-blur-sm p-8 sm:p-12 shadow-soft text-center animate-fade-in-up">
+        <p className="text-xl font-bold text-textPrimary">🌸 Tu carrito está vacío</p>
+        <p className="mt-3 text-sm text-[#5D4E6D]/80 font-medium">Añade tus figuras y accesorios kawaii favoritos antes de continuar.</p>
         <div className="mt-6 flex justify-center">
           <Button href="/products" type="button">
             Explorar productos
@@ -43,13 +43,13 @@ export function CartSummary() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-[40px] border border-slate-200 bg-white p-8 shadow-soft">
+    <div className="space-y-6 animate-fade-in-up">
+      <div className="rounded-[36px] sm:rounded-[40px] border border-softPink/20 bg-white/70 backdrop-blur-sm p-6 sm:p-8 shadow-soft">
         <div className="space-y-6">
           {items.map((item) => (
-            <div key={item.product.id} className="grid gap-4 rounded-3xl border border-slate-100 bg-slate-50 p-5 sm:grid-cols-[auto_1fr_auto] sm:items-center">
+            <div key={item.product.id} className="grid gap-4 rounded-3xl border border-softPink/10 bg-gradient-to-tr from-softPink/5 to-sky/5 p-5 sm:grid-cols-[auto_1fr_auto] sm:items-center">
               {/* Imagen del producto */}
-              <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl bg-white border border-slate-200 p-2 flex items-center justify-center mx-auto sm:mx-0">
+              <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl bg-white border border-softPink/20 p-2 flex items-center justify-center mx-auto sm:mx-0">
                 <ImageOrFallback
                   src={item.product.image}
                   alt={item.product.name}
@@ -61,11 +61,11 @@ export function CartSummary() {
 
               {/* Detalles del producto */}
               <div className="space-y-1.5 text-center sm:text-left">
-                <p className="text-sm font-semibold text-textPrimary">{item.product.name}</p>
-                <p className="text-xs text-slate-500">{item.product.category}</p>
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1 text-sm text-slate-600">
+                <p className="text-sm font-bold text-textPrimary">{item.product.name}</p>
+                <p className="text-xs text-[#8C84A2] font-semibold">🌸 {item.product.category}</p>
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1 text-xs sm:text-sm text-[#5D4E6D]/80 font-medium">
                   <span>Precio: ${item.product.price}</span>
-                  <span>Subtotal: ${item.product.price * item.quantity}</span>
+                  <span className="font-semibold text-textPrimary">Subtotal: ${item.product.price * item.quantity}</span>
                 </div>
               </div>
 
@@ -75,15 +75,15 @@ export function CartSummary() {
                   <button
                     type="button"
                     onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl text-textPrimary"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-softPink/30 bg-white text-xl text-textPrimary transition hover:bg-softPink/10 active:scale-90"
                   >
                     −
                   </button>
-                  <span className="w-10 text-center text-sm font-semibold text-textPrimary">{item.quantity}</span>
+                  <span className="w-10 text-center text-sm font-extrabold text-textPrimary">{item.quantity}</span>
                   <button
                     type="button"
                     onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-xl text-textPrimary"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-softPink/30 bg-white text-xl text-textPrimary transition hover:bg-softPink/10 active:scale-90"
                   >
                     +
                   </button>
@@ -92,7 +92,7 @@ export function CartSummary() {
                   <button
                     type="button"
                     onClick={() => removeProduct(item.product.id)}
-                    className="text-sm font-semibold text-accent transition hover:text-[#6549ff]"
+                    className="text-sm font-bold text-[#8C84A2] hover:text-softPink transition-colors duration-200"
                   >
                     Eliminar
                   </button>
@@ -103,13 +103,13 @@ export function CartSummary() {
         </div>
       </div>
 
-      <div className="rounded-[40px] border border-slate-200 bg-white p-8 shadow-soft">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="rounded-[36px] sm:rounded-[40px] border border-softPink/20 bg-white/70 backdrop-blur-sm p-6 sm:p-8 shadow-soft">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-accent">Resumen del carrito</p>
-            <p className="mt-2 text-2xl font-bold text-textPrimary">Total: ${subtotal}</p>
+            <p className="text-xs sm:text-sm font-extrabold uppercase tracking-[0.25em] bg-gradient-to-r from-softPink via-[#5D4E6D] to-lavender bg-clip-text text-transparent">Resumen del carrito</p>
+            <p className="mt-2 text-2xl sm:text-3xl font-black text-textPrimary">Total: ${subtotal}</p>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Button type="button" variant="ghost" onClick={clearCart}>
               Vaciar carrito
             </Button>
@@ -119,8 +119,8 @@ export function CartSummary() {
           </div>
         </div>
         {!isOrderEnabled && (
-          <p className="mt-4 text-sm text-rose-600">
-            No hay un número de WhatsApp configurado. Ve a la administración y agrega uno para solicitar el pedido.
+          <p className="mt-4 text-xs sm:text-sm text-[#5D4E6D]/80 font-bold bg-softPink/15 border border-softPink/25 rounded-[20px] p-4 text-center">
+            🌸 Para solicitar tu pedido, es necesario configurar un número de WhatsApp en el panel de administración.
           </p>
         )}
       </div>

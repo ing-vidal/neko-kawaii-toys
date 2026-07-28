@@ -162,12 +162,12 @@ export function ProductBrowser({ products }: ProductBrowserProps) {
         <ProductCarousel products={mergedProducts} />
       </div>
 
-      <div className="rounded-[40px] border border-slate-200 bg-white p-6 shadow-soft">
-        <div className="mb-6 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between border-b border-slate-100 pb-6">
+      <div className="rounded-[36px] sm:rounded-[40px] border border-softPink/20 bg-white/70 backdrop-blur-sm p-6 sm:p-8 shadow-soft">
+        <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between border-b border-softPink/10 pb-6">
           <div>
-            <h2 className="text-2xl font-bold text-textPrimary">Resultados</h2>
-            <p className="mt-2 text-sm text-slate-600">
-              {filteredAndSortedProducts.length} productos encontrados{' '}
+            <h2 className="text-2xl font-black text-textPrimary">Resultados</h2>
+            <p className="mt-2 text-sm text-[#5D4E6D]/80 font-medium">
+              🌸 {filteredAndSortedProducts.length} productos encontrados{' '}
               {query ? `para «${query}»` : 'en el catálogo'}.
             </p>
           </div>
@@ -176,14 +176,14 @@ export function ProductBrowser({ products }: ProductBrowserProps) {
             {/* Rango de Precios */}
             <div className="flex flex-col gap-2 min-w-[280px]">
               <div className="flex justify-between items-center">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Precio</span>
+                <span className="text-xs font-bold text-[#8C84A2] uppercase tracking-wider">Precio</span>
                 {(minPriceState !== null || maxPriceState !== null) && (
                   <button
                     onClick={() => {
                       setMinPriceState(null);
                       setMaxPriceState(null);
                     }}
-                    className="text-xs font-medium text-accent hover:underline"
+                    className="text-xs font-bold text-softPink hover:text-lavender transition-colors duration-200"
                   >
                     Limpiar rango
                   </button>
@@ -197,7 +197,7 @@ export function ProductBrowser({ products }: ProductBrowserProps) {
                     value={minInput}
                     onChange={handleMinInputChange}
                     onBlur={handleMinInputBlur}
-                    className="w-16 rounded-xl border border-slate-200 py-1.5 pl-5 pr-1.5 text-center text-xs font-medium text-textPrimary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                    className="w-16 rounded-xl border border-softPink/20 bg-white/90 py-1.5 pl-5 pr-1.5 text-center text-xs font-semibold text-textPrimary focus:border-softPink focus:outline-none focus:ring-1 focus:ring-softPink/40"
                   />
                 </div>
 
@@ -205,10 +205,10 @@ export function ProductBrowser({ products }: ProductBrowserProps) {
                 <div className="relative flex-1 px-1 py-4">
                   <div className="dual-range-slider relative w-full">
                     {/* Track background */}
-                    <div className="absolute top-1/2 left-0 h-1.5 w-full -translate-y-1/2 rounded bg-slate-100" />
+                    <div className="absolute top-1/2 left-0 h-1.5 w-full -translate-y-1/2 rounded bg-softPink/10" />
                     {/* Highlighted track */}
                     <div
-                      className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded bg-accent"
+                      className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded bg-gradient-to-r from-softPink to-lavender"
                       style={{
                         left: `${minPercent}%`,
                         right: `${100 - maxPercent}%`,
@@ -241,7 +241,7 @@ export function ProductBrowser({ products }: ProductBrowserProps) {
                     value={maxInput}
                     onChange={handleMaxInputChange}
                     onBlur={handleMaxInputBlur}
-                    className="w-16 rounded-xl border border-slate-200 py-1.5 pl-5 pr-1.5 text-center text-xs font-medium text-textPrimary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                    className="w-16 rounded-xl border border-softPink/20 bg-white/90 py-1.5 pl-5 pr-1.5 text-center text-xs font-semibold text-textPrimary focus:border-softPink focus:outline-none focus:ring-1 focus:ring-softPink/40"
                   />
                 </div>
               </div>
@@ -249,11 +249,11 @@ export function ProductBrowser({ products }: ProductBrowserProps) {
 
             {/* Ordenación */}
             <div className="flex flex-col gap-2 min-w-[180px]">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Ordenar por</span>
+              <span className="text-xs font-bold text-[#8C84A2] uppercase tracking-wider">Ordenar por</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-textPrimary outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+                className="w-full rounded-xl border border-softPink/20 bg-white/90 px-3 py-2 text-sm text-textPrimary outline-none focus:border-softPink focus:ring-1 focus:ring-softPink/40 transition duration-200"
               >
                 <option value="name-asc">Nombre: A-Z</option>
                 <option value="name-desc">Nombre: Z-A</option>

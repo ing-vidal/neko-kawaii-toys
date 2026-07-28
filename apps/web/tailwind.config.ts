@@ -9,19 +9,22 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        softPink: '#FFD6E8',
-        blush: '#FFB8D4',
-        lavender: '#CDB4FF',
-        sky: '#DCF5FF',
-        textPrimary: '#1F1F2C',
-        surface: '#FFFFFF',
-        accent: '#7C61FF'
+        softPink: '#F8C8DC',
+        blush: '#F8C8DC',
+        lavender: '#D8C8FF',
+        sky: '#CDEBFF',
+        textPrimary: '#4B4453',
+        surface: '#FFF8FC',
+        accent: '#D8C8FF'
       },
       boxShadow: {
-        soft: '0 18px 40px rgba(31, 31, 44, 0.08)'
+        soft: '0 12px 32px rgba(248, 200, 220, 0.18)'
       },
       borderRadius: {
-        xl: '1.25rem'
+        xl: '1.5rem',
+        '2xl': '2rem',
+        '3xl': '2.5rem',
+        '4xl': '3rem'
       }
     }
   },
