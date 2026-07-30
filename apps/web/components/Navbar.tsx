@@ -8,6 +8,7 @@ import { CartIcon } from './CartIcon';
 
 const navItems = [
   { label: 'Productos', href: '/products' },
+  { label: 'Nosotros', href: '/about' },
   { label: 'Contacto', href: '/contact' }
 ];
 
