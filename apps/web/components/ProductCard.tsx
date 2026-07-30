@@ -8,6 +8,7 @@ import { Product } from '@product-types/product';
 import { RatingStars } from './RatingStars';
 import { Button } from './Button';
 import { ImageOrFallback } from './ImageOrFallback';
+import { PriceDisplay } from './PriceDisplay';
 
 interface ProductCardProps {
   product: Product;
@@ -209,7 +210,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <p className="text-sm text-[#5D4E6D]/75 line-clamp-2">{product.description}</p>
         <div className="flex items-center justify-between gap-3">
           <div>
-            <span className="block text-2xl font-black text-textPrimary">${product.price}</span>
+            <PriceDisplay product={product} variant="card" />
             <RatingStars rating={product.rating} />
           </div>
           <Button type="button" onClick={() => addProduct(product)} className="whitespace-nowrap">

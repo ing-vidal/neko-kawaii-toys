@@ -4,11 +4,18 @@ import { Button } from './Button';
 import { useCart } from '@hooks/useCart';
 import { useAdminConfig } from '@hooks/useAdminConfig';
 import { ImageOrFallback } from './ImageOrFallback';
+import { hasValidOffer, getEffectivePrice } from '@lib/offers';
 
-function buildWhatsAppMessage(items: Array<{ product: { name: string; price: number }; quantity: number }>, subtotal: number) {
+function buildWhatsAppMessage(items: Array<{ product: { name: string; price: number; hasOffer?: boolean; offerPrice?: number | null }; quantity: number }>, subtotal: number) {
   const lines = ['Me interesan los siguientes productos:'];
   items.forEach((item) => {
-    lines.push(`- ${item.product.name} x${item.quantity} ($${item.product.price * item.quantity})`);
+    const effectivePrice = hasValidOffer(item.product) ? (item.product.offerPrice as number) : item.product.price;
+    const lineTotal = effectivePrice * item.quantity;
+    if (hasValidOffer(item.product)) {
+      lines.push(`- ${item.product.name} x${item.quantity} (Oferta: $${effectivePrice}, antes $${item.product.price}) → $${lineTotal}`);
+    } else {
+      lines.push(`- ${item.product.name} x${item.quantity} ($${lineTotal})`);
+    }
   });
   lines.push(`Total: $${subtotal}`);
   return encodeURIComponent(lines.join('\n'));
@@ -64,8 +71,18 @@ export function CartSummary() {
                 <p className="text-sm font-bold text-textPrimary">{item.product.name}</p>
                 <p className="text-xs text-[#8C84A2] font-semibold">🌸 {item.product.category}</p>
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1 text-xs sm:text-sm text-[#5D4E6D]/80 font-medium">
-                  <span>Precio: ${item.product.price}</span>
-                  <span className="font-semibold text-textPrimary">Subtotal: ${item.product.price * item.quantity}</span>
+                  {hasValidOffer(item.product) ? (
+                    <>
+                      <span className="line-through text-[#8C84A2]">Precio: ${item.product.price}</span>
+                      <span className="font-bold text-[#C44A70]">Oferta: ${item.product.offerPrice}</span>
+                      <span className="font-semibold text-textPrimary">Subtotal: ${getEffectivePrice(item.product) * item.quantity}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Precio: ${item.product.price}</span>
+                      <span className="font-semibold text-textPrimary">Subtotal: ${item.product.price * item.quantity}</span>
+                    </>
+                  )}
                 </div>
               </div>
 

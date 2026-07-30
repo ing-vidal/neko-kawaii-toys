@@ -5,6 +5,7 @@ import { Button } from './Button';
 import { ImageOrFallback } from './ImageOrFallback';
 import { useCart } from '@hooks/useCart';
 import type { Product } from '@product-types/product';
+import { PriceDisplay } from './PriceDisplay';
 
 interface ProductDetailsProps {
   product: Product;
@@ -33,10 +34,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
           <div className="mt-6 space-y-5 text-[#5D4E6D]/85 leading-7 font-medium">
             <p>{product.description}</p>
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-3xl bg-gradient-to-tr from-softPink/5 to-sky/5 border border-softPink/15 p-5">
-                <p className="text-xs uppercase tracking-[0.2em] text-[#8C84A2] font-bold">Precio</p>
-                <p className="mt-2 text-3xl font-black text-textPrimary">${product.price}</p>
-              </div>
+              <PriceDisplay product={product} variant="detail" />
               <div className="rounded-3xl bg-gradient-to-tr from-softPink/5 to-sky/5 border border-softPink/15 p-5">
                 <p className="text-xs uppercase tracking-[0.2em] text-[#8C84A2] font-bold">Stock</p>
                 <p className="mt-2 text-3xl font-black text-textPrimary">{product.stock}</p>

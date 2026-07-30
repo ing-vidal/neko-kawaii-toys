@@ -7,6 +7,7 @@ import { SearchBar } from './SearchBar';
 import { ProductCarousel } from './ProductCarousel';
 import type { Product } from '@product-types/product';
 import { useLocalCatalog } from '@hooks/useLocalCatalog';
+import { getEffectivePrice } from '@lib/offers';
 
 const defaultCategories = ['Todos', 'Figuras', 'Peluches', 'Anime', 'Accesorios', 'Coleccionables'] as const;
 
@@ -24,10 +25,10 @@ export function ProductBrowser({ products }: ProductBrowserProps) {
     [adminCategories]
   );
 
-  // Dynamic absolute min and max prices
+  // Dynamic absolute min and max prices (based on effective price)
   const { absoluteMinPrice, absoluteMaxPrice } = useMemo(() => {
     if (mergedProducts.length === 0) return { absoluteMinPrice: 0, absoluteMaxPrice: 100 };
-    const prices = mergedProducts.map((p) => p.price);
+    const prices = mergedProducts.map((p) => getEffectivePrice(p));
     return {
       absoluteMinPrice: Math.floor(Math.min(...prices)),
       absoluteMaxPrice: Math.ceil(Math.max(...prices)),
@@ -111,12 +112,13 @@ export function ProductBrowser({ products }: ProductBrowserProps) {
   const minPercent = ((currentMinPrice - absoluteMinPrice) / (absoluteMaxPrice - absoluteMinPrice || 1)) * 100;
   const maxPercent = ((currentMaxPrice - absoluteMinPrice) / (absoluteMaxPrice - absoluteMinPrice || 1)) * 100;
 
-  // Filter and sort products
+  // Filter and sort products (all price operations use effective price)
   const filteredAndSortedProducts = useMemo(() => {
     let result = mergedProducts.filter((product) => {
       const matchesCategory = category === 'Todos' || product.category === category;
       const matchesQuery = product.name.toLowerCase().includes(query.toLowerCase());
-      const matchesPrice = product.price >= currentMinPrice && product.price <= currentMaxPrice;
+      const effectivePrice = getEffectivePrice(product);
+      const matchesPrice = effectivePrice >= currentMinPrice && effectivePrice <= currentMaxPrice;
       return matchesCategory && matchesQuery && matchesPrice;
     });
 
@@ -128,10 +130,10 @@ export function ProductBrowser({ products }: ProductBrowserProps) {
         return b.name.localeCompare(a.name);
       }
       if (sortBy === 'price-asc') {
-        return a.price - b.price;
+        return getEffectivePrice(a) - getEffectivePrice(b);
       }
       if (sortBy === 'price-desc') {
-        return b.price - a.price;
+        return getEffectivePrice(b) - getEffectivePrice(a);
       }
       return 0;
     });

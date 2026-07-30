@@ -10,7 +10,9 @@ const products: Product[] = [
     image: '/images/product-1.svg',
     stock: 12,
     rating: 4.9,
-    reviews: 34
+    reviews: 34,
+    hasOffer: true,
+    offerPrice: 49,
   },
   {
     id: 'luna-plush',
@@ -21,7 +23,9 @@ const products: Product[] = [
     image: '/images/product-2.svg',
     stock: 20,
     rating: 4.8,
-    reviews: 48
+    reviews: 48,
+    hasOffer: false,
+    offerPrice: null,
   },
   {
     id: 'ninja-hana',
@@ -32,7 +36,9 @@ const products: Product[] = [
     image: '/images/product-3.svg',
     stock: 9,
     rating: 4.7,
-    reviews: 26
+    reviews: 26,
+    hasOffer: false,
+    offerPrice: null,
   },
   {
     id: 'anime-starter-kit',
@@ -43,7 +49,9 @@ const products: Product[] = [
     image: '/images/product-4.svg',
     stock: 14,
     rating: 4.9,
-    reviews: 71
+    reviews: 71,
+    hasOffer: true,
+    offerPrice: 32,
   },
   {
     id: 'kawaii-earrings',
@@ -54,7 +62,9 @@ const products: Product[] = [
     image: '/images/product-5.svg',
     stock: 24,
     rating: 4.6,
-    reviews: 19
+    reviews: 19,
+    hasOffer: false,
+    offerPrice: null,
   },
   {
     id: 'chibi-collector',
@@ -65,7 +75,9 @@ const products: Product[] = [
     image: '/images/product-1.svg',
     stock: 7,
     rating: 4.8,
-    reviews: 38
+    reviews: 38,
+    hasOffer: false,
+    offerPrice: null,
   },
   {
     id: 'shiba-keychain',
@@ -76,7 +88,9 @@ const products: Product[] = [
     image: '/images/product-2.svg',
     stock: 30,
     rating: 4.7,
-    reviews: 54
+    reviews: 54,
+    hasOffer: false,
+    offerPrice: null,
   },
   {
     id: 'white-kitty',
@@ -87,7 +101,9 @@ const products: Product[] = [
     image: '/images/product-3.svg',
     stock: 10,
     rating: 4.8,
-    reviews: 40
+    reviews: 40,
+    hasOffer: false,
+    offerPrice: null,
   },
   {
     id: 'cosplay-hoodie',
@@ -98,7 +114,9 @@ const products: Product[] = [
     image: '/images/product-4.svg',
     stock: 18,
     rating: 4.5,
-    reviews: 22
+    reviews: 22,
+    hasOffer: false,
+    offerPrice: null,
   },
   {
     id: 'sakura-pillow',
@@ -109,7 +127,9 @@ const products: Product[] = [
     image: '/images/product-5.svg',
     stock: 16,
     rating: 4.8,
-    reviews: 29
+    reviews: 29,
+    hasOffer: true,
+    offerPrice: 24,
   },
   {
     id: 'anime-poster',
@@ -120,7 +140,9 @@ const products: Product[] = [
     image: '/images/product-1.svg',
     stock: 26,
     rating: 4.4,
-    reviews: 12
+    reviews: 12,
+    hasOffer: false,
+    offerPrice: null,
   },
   {
     id: 'mochi-bag',
@@ -131,7 +153,9 @@ const products: Product[] = [
     image: '/images/product-2.svg',
     stock: 14,
     rating: 4.7,
-    reviews: 33
+    reviews: 33,
+    hasOffer: false,
+    offerPrice: null,
   },
   {
     id: 'pink-cat-plush',
@@ -142,7 +166,9 @@ const products: Product[] = [
     image: '/images/product-3.svg',
     stock: 11,
     rating: 4.9,
-    reviews: 65
+    reviews: 65,
+    hasOffer: true,
+    offerPrice: 29,
   },
   {
     id: 'star-stone-set',
@@ -153,7 +179,9 @@ const products: Product[] = [
     image: '/images/product-4.svg',
     stock: 13,
     rating: 4.6,
-    reviews: 21
+    reviews: 21,
+    hasOffer: false,
+    offerPrice: null,
   },
   {
     id: 'retro-anime-pin',
@@ -164,7 +192,9 @@ const products: Product[] = [
     image: '/images/product-5.svg',
     stock: 33,
     rating: 4.5,
-    reviews: 38
+    reviews: 38,
+    hasOffer: false,
+    offerPrice: null,
   },
   {
     id: 'kawaii-tea-set',
@@ -175,7 +205,9 @@ const products: Product[] = [
     image: '/images/product-1.svg',
     stock: 9,
     rating: 4.8,
-    reviews: 27
+    reviews: 27,
+    hasOffer: false,
+    offerPrice: null,
   },
   {
     id: 'starry-headband',
@@ -186,7 +218,9 @@ const products: Product[] = [
     image: '/images/product-2.svg',
     stock: 25,
     rating: 4.6,
-    reviews: 18
+    reviews: 18,
+    hasOffer: false,
+    offerPrice: null,
   },
   {
     id: 'sakura-blossom',
@@ -197,7 +231,9 @@ const products: Product[] = [
     image: '/images/product-3.svg',
     stock: 8,
     rating: 4.9,
-    reviews: 42
+    reviews: 42,
+    hasOffer: false,
+    offerPrice: null,
   },
   {
     id: 'kawaii-cushion',
@@ -208,7 +244,9 @@ const products: Product[] = [
     image: '/images/product-4.svg',
     stock: 19,
     rating: 4.7,
-    reviews: 36
+    reviews: 36,
+    hasOffer: false,
+    offerPrice: null,
   }
 ];
 

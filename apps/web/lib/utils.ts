@@ -1,5 +1,6 @@
 import { Product, ProductCategory } from '@product-types/product';
 import products from '@data/products';
+import { getEffectivePrice } from '@lib/offers';
 
 export const formatCurrency = (value: number) =>
   new Intl.NumberFormat('es-ES', {
@@ -27,4 +28,4 @@ export const getCategories = (): ProductCategory[] => [
 ];
 
 export const calculateCartTotal = (items: Array<{ product: Product; quantity: number }>) =>
-  items.reduce((total, item) => total + item.product.price * item.quantity, 0);
+  items.reduce((total, item) => total + getEffectivePrice(item.product) * item.quantity, 0);

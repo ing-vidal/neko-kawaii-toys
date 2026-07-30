@@ -89,6 +89,10 @@ export default function AdminPage() {
   const [newAdminPassword, setNewAdminPassword] = useState('');
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [productError, setProductError] = useState<string | null>(null);
+  // Offer fields
+  const [hasOffer, setHasOffer] = useState(false);
+  const [offerPrice, setOfferPrice] = useState('');
+  const [offerPriceError, setOfferPriceError] = useState('');
 
   const { authenticated, unlock, lock, setAdminPassword: setStoredAdminPassword, defaultPassword } = useAdminAccess();
 
@@ -145,6 +149,10 @@ export default function AdminPage() {
     setStock(String(product.stock));
     setRating(String(product.rating));
     setReviews(String(product.reviews));
+    // Offer fields
+    setHasOffer(product.hasOffer ?? false);
+    setOfferPrice(product.offerPrice != null ? String(product.offerPrice) : '');
+    setOfferPriceError('');
   };
 
   const handleCancelEdit = () => {
@@ -158,16 +166,35 @@ export default function AdminPage() {
     setStock('10');
     setRating('4.8');
     setReviews('10');
+    // Offer fields
+    setHasOffer(false);
+    setOfferPrice('');
+    setOfferPriceError('');
   };
 
   const handleAddProduct = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!name.trim()) return;
     setProductError(null);
+    setOfferPriceError('');
 
     if (!image) {
       setProductError('Por favor, selecciona una imagen para el producto.');
       return;
+    }
+
+    // Validate offer price if offer is enabled
+    if (hasOffer) {
+      const offerPriceNum = Number(offerPrice);
+      const priceNum = Number(price);
+      if (!offerPrice || isNaN(offerPriceNum) || offerPriceNum <= 0) {
+        setOfferPriceError('El precio de oferta debe ser un número positivo.');
+        return;
+      }
+      if (offerPriceNum >= priceNum) {
+        setOfferPriceError('El precio de oferta debe ser menor al precio normal.');
+        return;
+      }
     }
 
     const id = editingProductId ?? createProductId(name);
@@ -181,6 +208,8 @@ export default function AdminPage() {
       stock: Number(stock) || 0,
       rating: Number(rating) || 4.5,
       reviews: Number(reviews) || 0,
+      hasOffer,
+      offerPrice: hasOffer ? Number(offerPrice) : null,
     };
 
     if (!availableCategories.includes(selectedCategory)) {
@@ -204,6 +233,9 @@ export default function AdminPage() {
     setRating('4.8');
     setReviews('10');
     setEditingProductId(null);
+    setHasOffer(false);
+    setOfferPrice('');
+    setOfferPriceError('');
   };
 
   if (!authenticated) {
@@ -561,6 +593,61 @@ export default function AdminPage() {
                 />
               </div>
             </div>
+
+            {/* Sección de oferta */}
+            <div className="rounded-3xl border border-softPink/30 bg-gradient-to-tr from-softPink/5 to-lavender/5 p-5 space-y-4">
+              <p className="text-sm font-bold text-textPrimary">🏷️ Oferta / Descuento</p>
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="hasOffer"
+                  checked={hasOffer}
+                  onChange={(e) => {
+                    setHasOffer(e.target.checked);
+                    if (!e.target.checked) {
+                      setOfferPrice('');
+                      setOfferPriceError('');
+                    }
+                  }}
+                  className="h-4 w-4 rounded accent-softPink cursor-pointer"
+                />
+                <label htmlFor="hasOffer" className="text-sm font-medium text-textPrimary cursor-pointer select-none">
+                  Producto en oferta
+                </label>
+              </div>
+              {hasOffer && (
+                <div>
+                  <label className="block text-sm font-medium text-textPrimary">
+                    Precio de oferta <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={offerPrice}
+                    onChange={(e) => {
+                      setOfferPrice(e.target.value);
+                      setOfferPriceError('');
+                    }}
+                    placeholder={`Ej. ${Math.round(Number(price) * 0.8) || ''}`}
+                    required={hasOffer}
+                    className={`mt-2 w-full rounded-3xl border px-4 py-3 text-sm text-textPrimary outline-none focus:ring-2 ${
+                      offerPriceError
+                        ? 'border-rose-300 bg-rose-50 focus:border-rose-400 focus:ring-rose-200/40'
+                        : 'border-slate-200 bg-slate-50 focus:border-softPink focus:ring-softPink/20'
+                    }`}
+                  />
+                  {offerPriceError && (
+                    <p className="mt-1.5 text-xs font-semibold text-rose-500">{offerPriceError}</p>
+                  )}
+                  {offerPrice && !offerPriceError && Number(offerPrice) > 0 && Number(offerPrice) < Number(price) && (
+                    <p className="mt-1.5 text-xs font-semibold text-[#5D4E6D]/70">
+                      Descuento: {Math.round((1 - Number(offerPrice) / Number(price)) * 100)}% — Ahorras ${Number(price) - Number(offerPrice)}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="space-y-4 rounded-[32px] border border-slate-100 bg-slate-50 p-6">
@@ -569,6 +656,9 @@ export default function AdminPage() {
               <span className="text-sm text-slate-600">Producto: {name || 'Nombre del producto'}</span>
               <span className="text-sm text-slate-600">Categoría: {selectedCategory}</span>
               <span className="text-sm text-slate-600">Precio: ${price}</span>
+              {hasOffer && offerPrice && (
+                <span className="text-sm font-semibold text-[#C44A70]">Oferta: ${offerPrice}</span>
+              )}
               <span className="text-sm text-slate-600">Stock: {stock}</span>
             </div>
             <div className="space-y-2">
@@ -609,7 +699,14 @@ export default function AdminPage() {
                   <p className="text-sm text-slate-600">{product.category}</p>
                 </div>
                 <div className="mt-4 flex flex-wrap items-center gap-3 sm:mt-0">
-                  <span className="rounded-full bg-white px-4 py-2 text-sm text-slate-700">${product.price}</span>
+                  {product.hasOffer && product.offerPrice != null ? (
+                    <>
+                      <span className="rounded-full bg-white px-4 py-2 text-sm text-slate-400 line-through">${product.price}</span>
+                      <span className="rounded-full bg-gradient-to-r from-softPink to-lavender px-4 py-2 text-sm font-bold text-textPrimary border border-white/60">🏷️ ${product.offerPrice}</span>
+                    </>
+                  ) : (
+                    <span className="rounded-full bg-white px-4 py-2 text-sm text-slate-700">${product.price}</span>
+                  )}
                   <Button type="button" variant="ghost" onClick={() => handleEditClick(product)}>
                     Editar
                   </Button>
