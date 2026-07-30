@@ -227,6 +227,28 @@ img {
 
 /* ─── Offer Microinteractions ───────────────────────────────────────────── */
 
+/* Gradient border wrapper — correct technique: wrapper has gradient bg + 1.5px padding,
+   the card inside has its own white/70 bg covering the interior.
+   Only the 1.5px strip around the card shows the gradient = border. */
+@keyframes offer-border-spin {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.offer-border-gradient {
+  background: linear-gradient(
+    135deg,
+    #F8C8DC 0%,
+    #D8C8FF 28%,
+    #F0C8E8 52%,
+    #D8C8FF 76%,
+    #F8C8DC 100%
+  );
+  background-size: 300% 300%;
+  animation: offer-border-spin 8s ease infinite;
+}
+
 /* Shine sweep — crosses the button once, repeats every ~9s */
 @keyframes btn-shine {
   0%   { transform: translateX(-120%) skewX(-20deg); opacity: 0; }
@@ -254,36 +276,6 @@ img {
   animation: btn-shine 9s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   pointer-events: none;
   border-radius: inherit;
-}
-
-/* Gradient border glow — slow rotating hue on offer cards */
-@keyframes offer-border-spin {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.offer-card-border {
-  position: relative;
-}
-
-.offer-card-border::before {
-  content: '';
-  position: absolute;
-  inset: -1.5px;
-  border-radius: inherit;
-  background: linear-gradient(
-    135deg,
-    #F8C8DC 0%,
-    #D8C8FF 25%,
-    #F8C8DC 50%,
-    #e8b0d0 75%,
-    #D8C8FF 100%
-  );
-  background-size: 300% 300%;
-  animation: offer-border-spin 8s ease infinite;
-  z-index: 0;
-  opacity: 0.65;
 }
 
 /* Badge bounce-in — fires once on mount */
@@ -329,7 +321,7 @@ img {
 /* ─── Respect user preferences ──────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .offer-shine::after,
-  .offer-card-border::before,
+  .offer-border-gradient,
   .offer-badge,
   .offer-float,
   .price-pop {

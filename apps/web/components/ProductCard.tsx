@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import {
+  motion,
+  AnimatePresence,
+  useReducedMotion,
+  useMotionValue,
+  useMotionTemplate,
+} from 'framer-motion';
 import { useCart } from '@hooks/useCart';
 import { Product } from '@product-types/product';
 import { RatingStars } from './RatingStars';
@@ -34,74 +40,77 @@ export function ProductCard({ product }: ProductCardProps) {
   const [mounted, setMounted] = useState(false);
   const shouldReduceMotion = useReducedMotion();
 
+  // Cursor spotlight — useMotionValue avoids React re-renders on every mousemove
+  const mouseX = useMotionValue(-1000);
+  const mouseY = useMotionValue(-1000);
+  const spotlightBg = useMotionTemplate`radial-gradient(circle 150px at ${mouseX}px ${mouseY}px, rgba(255,255,255,0.07) 0%, transparent 80%)`;
+
   const isOffer = hasValidOffer(product);
+  const isMotionEnabled = mounted && !shouldReduceMotion;
 
   useEffect(() => {
     setMounted(true);
-    const mediaQuery = window.matchMedia('(hover: hover)');
-    setSupportsHover(mediaQuery.matches);
-
+    const mq = window.matchMedia('(hover: hover)');
+    setSupportsHover(mq.matches);
     const handler = (e: MediaQueryListEvent) => setSupportsHover(e.matches);
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
   }, []);
 
-  const isMotionEnabled = mounted && !shouldReduceMotion;
-
+  // Petals — spawn only on offer products
   const spawnPetals = () => {
-    // Pétalos solo en productos con oferta
     if (!isMotionEnabled || !isOffer) return;
-
-    const count = Math.floor(Math.random() * 2) + 2; // 2 o 3 pétalos
+    const count = Math.floor(Math.random() * 2) + 2;
     const newPetals = Array.from({ length: count }).map((_, i) => {
       const id = Date.now() + i + Math.random();
-      const startX = Math.random() * 60 + 20;
-      const startY = Math.random() * 25 + 15;
-      const driftX = (Math.random() - 0.5) * 50;
-      const fallY = Math.random() * 40 + 50;
-      const rotate = Math.random() * 360;
-      const targetRotate = rotate + (Math.random() - 0.5) * 180;
-      const scale = Math.random() * 0.3 + 0.5;
-
-      return { id, startX, startY, driftX, fallY, rotate, targetRotate, scale };
+      return {
+        id,
+        startX: Math.random() * 60 + 20,
+        startY: Math.random() * 25 + 15,
+        driftX: (Math.random() - 0.5) * 50,
+        fallY: Math.random() * 40 + 50,
+        rotate: Math.random() * 360,
+        targetRotate: Math.random() * 360,
+        scale: Math.random() * 0.3 + 0.5,
+      };
     });
-
     setPetals((prev) => [...prev, ...newPetals]);
-
     setTimeout(() => {
       setPetals((prev) => prev.filter((p) => !newPetals.some((np) => np.id === p.id)));
     }, 950);
   };
 
-  const handleHoverStart = () => {
-    if (supportsHover) spawnPetals();
+  // Mouse handlers
+  const handleMouseMoveCard = (e: React.MouseEvent<HTMLElement>) => {
+    if (!isOffer || !supportsHover || !isMotionEnabled) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    mouseX.set(e.clientX - rect.left);
+    mouseY.set(e.clientY - rect.top);
   };
 
-  const handleTapStart = () => {
-    if (!supportsHover) spawnPetals();
+  const handleMouseLeaveCard = () => {
+    mouseX.set(-1000);
+    mouseY.set(-1000);
   };
 
-  // Hover premium: oferta eleva más y brilla más
+  // Card Framer Motion variants — offer cards elevate more and glow more on hover
   const cardVariants = {
     initial: {
       opacity: 0,
       y: 20,
-      backgroundColor: 'rgba(255, 255, 255, 0.7)',
       boxShadow: '0 12px 32px rgba(248, 200, 220, 0.18)',
     },
     animate: {
       opacity: 1,
       y: 0,
-      backgroundColor: 'rgba(255, 255, 255, 0.7)',
       boxShadow: '0 12px 32px rgba(248, 200, 220, 0.18)',
       transition: { duration: 0.45, ease: 'easeOut' as const },
     },
     hover: {
       y: isOffer ? -8 : -5,
       scale: isOffer ? 1.025 : 1.02,
-      backgroundColor: 'rgba(255, 255, 255, 1)',
       boxShadow: isOffer
-        ? '0 24px 48px rgba(248, 200, 220, 0.45), 0 0 0 1px rgba(248, 200, 220, 0.3)'
+        ? '0 28px 52px rgba(248, 200, 220, 0.50), 0 6px 20px rgba(216, 200, 255, 0.25)'
         : '0 20px 40px rgba(248, 200, 220, 0.35)',
       transition: { duration: 0.35, ease: 'easeOut' as const },
     },
@@ -111,34 +120,40 @@ export function ProductCard({ product }: ProductCardProps) {
     },
   };
 
-  const activeVariants = isMotionEnabled
-    ? cardVariants
-    : {
-        initial: { opacity: 1, y: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', boxShadow: '0 12px 32px rgba(248, 200, 220, 0.18)' },
-        animate: { opacity: 1, y: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', boxShadow: '0 12px 32px rgba(248, 200, 220, 0.18)' },
-        hover: {},
-        tap: {},
-      };
+  const reducedVariants = {
+    initial: { opacity: 1, y: 0, boxShadow: '0 12px 32px rgba(248, 200, 220, 0.18)' },
+    animate: { opacity: 1, y: 0, boxShadow: '0 12px 32px rgba(248, 200, 220, 0.18)' },
+    hover: {},
+    tap: {},
+  };
 
-  return (
+  const article = (
     <motion.article
-      variants={activeVariants}
+      variants={isMotionEnabled ? cardVariants : reducedVariants}
       initial="initial"
       whileInView="animate"
       viewport={{ once: true }}
       whileHover={isMotionEnabled && supportsHover ? 'hover' : undefined}
       whileTap={isMotionEnabled ? 'tap' : undefined}
-      onHoverStart={handleHoverStart}
-      onTapStart={handleTapStart}
-      // Borde degradado animado solo en productos con oferta
-      className={`group relative rounded-[32px] border bg-white/70 backdrop-blur-sm p-5 shadow-soft ${
-        isOffer
-          ? 'offer-card-border border-transparent'
-          : 'border-softPink/20'
+      onHoverStart={() => { if (supportsHover) spawnPetals(); }}
+      onMouseMove={handleMouseMoveCard}
+      onMouseLeave={handleMouseLeaveCard}
+      onTapStart={() => { if (!supportsHover) spawnPetals(); }}
+      // Offer cards: no border (gradient border is the wrapper); normal cards: softPink border
+      className={`relative rounded-[31px] bg-white/70 backdrop-blur-sm p-5 shadow-soft ${
+        isOffer ? '' : 'border border-softPink/20 rounded-[32px]'
       }`}
-      style={isOffer ? { isolation: 'isolate' } : undefined}
     >
-      {/* Pétalos Sakura — solo en oferta */}
+      {/* Cursor spotlight — desktop + offer only. useMotionTemplate avoids re-renders */}
+      {isOffer && supportsHover && isMotionEnabled && (
+        <motion.div
+          aria-hidden
+          className="absolute inset-0 rounded-[31px] pointer-events-none z-[1]"
+          style={{ background: spotlightBg }}
+        />
+      )}
+
+      {/* Sakura petals — offer only */}
       <AnimatePresence>
         {petals.map((petal) => (
           <motion.svg
@@ -152,47 +167,34 @@ export function ProductCard({ product }: ProductCardProps) {
               rotate: petal.targetRotate,
             }}
             exit={{ opacity: 0 }}
-            transition={{
-              duration: 0.9,
-              ease: 'easeOut' as const,
-              times: [0, 0.2, 0.8, 1],
-            }}
+            transition={{ duration: 0.9, ease: 'easeOut' as const, times: [0, 0.2, 0.8, 1] }}
             viewBox="0 0 24 24"
             className="absolute pointer-events-none z-10 w-4 h-4 text-softPink fill-current"
-            style={{
-              left: `${petal.startX}%`,
-              top: `${petal.startY}%`,
-            }}
+            style={{ left: `${petal.startX}%`, top: `${petal.startY}%` }}
           >
             <path d="M12 4 C13 3 15 2 16 2 C19 2 21 5 21 9 C21 14 16 19 12 22 C8 19 3 14 3 9 C3 5 5 2 8 2 C9 2 11 3 12 4 Z" />
           </motion.svg>
         ))}
       </AnimatePresence>
 
-      {/* Contenedor de imagen con badge superpuesto */}
-      <div className="relative">
-        {/* Badge de oferta — esquina superior izquierda de la imagen */}
+      {/* Image area with badge overlay */}
+      <div className="relative z-[2]">
         {isOffer && mounted && (
           <div className="absolute top-2 left-2 z-20">
             <OfferBadge product={product} size="sm" />
           </div>
         )}
-
         <Link
           href={`/products/${product.id}`}
           className="block overflow-hidden rounded-[24px] bg-gradient-to-tr from-softPink/10 via-surface/40 to-sky/20 p-6"
         >
           <motion.div
             animate={isMotionEnabled ? { y: [0, -4, 0] } : undefined}
-            transition={{
-              duration: 7,
-              repeat: Infinity,
-              ease: 'easeInOut' as const,
-            }}
+            transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' as const }}
             className="h-48 w-full flex items-center justify-center"
           >
             <motion.div
-              variants={isMotionEnabled ? { hover: { scale: 1.04 } } : {}}
+              variants={isMotionEnabled ? { hover: { scale: 1.05 } } : {}}
               transition={{ duration: 0.35, ease: 'easeOut' as const }}
               className="h-full w-full"
             >
@@ -208,7 +210,8 @@ export function ProductCard({ product }: ProductCardProps) {
         </Link>
       </div>
 
-      <div className="mt-5 space-y-3">
+      {/* Product info */}
+      <div className="mt-5 space-y-3 relative z-[2]">
         <div className="flex items-center justify-between gap-2 text-[10px] sm:text-xs uppercase tracking-[0.18em] text-[#8C84A2] font-semibold">
           <span className="text-lavender-700">🌸 {product.category}</span>
           <span>{product.reviews}+ reseñas</span>
@@ -225,7 +228,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <PriceDisplay product={product} variant="card" />
             <RatingStars rating={product.rating} />
           </div>
-          {/* Botón con shine solo cuando el producto es oferta */}
+          {/* Shine on button only when product has an offer */}
           <Button
             type="button"
             onClick={() => addProduct(product)}
@@ -237,4 +240,24 @@ export function ProductCard({ product }: ProductCardProps) {
       </div>
     </motion.article>
   );
+
+  // Offer cards: wrap with gradient border (padding technique) + ambient halo
+  if (isOffer) {
+    return (
+      <div className="relative group">
+        {/* Ambient halo — blurred glow BEHIND the card, not on it */}
+        <div
+          aria-hidden
+          className="absolute -inset-3 rounded-[44px] bg-gradient-to-br from-softPink/20 via-transparent to-lavender/15 blur-2xl pointer-events-none transition-opacity duration-500 opacity-50 group-hover:opacity-85"
+        />
+        {/* Gradient border wrapper: 1.5px padding + animated gradient bg.
+            Card's own bg-white/70 covers the interior — only the 1.5px strip shows. */}
+        <div className="p-[1.5px] rounded-[32px] offer-border-gradient">
+          {article}
+        </div>
+      </div>
+    );
+  }
+
+  return article;
 }
