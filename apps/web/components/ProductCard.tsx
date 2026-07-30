@@ -9,6 +9,8 @@ import { RatingStars } from './RatingStars';
 import { Button } from './Button';
 import { ImageOrFallback } from './ImageOrFallback';
 import { PriceDisplay } from './PriceDisplay';
+import { OfferBadge } from './OfferBadge';
+import { hasValidOffer } from '@lib/offers';
 
 interface ProductCardProps {
   product: Product;
@@ -32,6 +34,8 @@ export function ProductCard({ product }: ProductCardProps) {
   const [mounted, setMounted] = useState(false);
   const shouldReduceMotion = useReducedMotion();
 
+  const isOffer = hasValidOffer(product);
+
   useEffect(() => {
     setMounted(true);
     const mediaQuery = window.matchMedia('(hover: hover)');
@@ -45,75 +49,66 @@ export function ProductCard({ product }: ProductCardProps) {
   const isMotionEnabled = mounted && !shouldReduceMotion;
 
   const spawnPetals = () => {
-    if (!isMotionEnabled) return;
+    // Pétalos solo en productos con oferta
+    if (!isMotionEnabled || !isOffer) return;
 
-    const count = Math.floor(Math.random() * 2) + 2; // Genera 2 o 3 pétalos
+    const count = Math.floor(Math.random() * 2) + 2; // 2 o 3 pétalos
     const newPetals = Array.from({ length: count }).map((_, i) => {
       const id = Date.now() + i + Math.random();
-      const startX = Math.random() * 60 + 20; // 20% a 80% horizontal
-      const startY = Math.random() * 25 + 15; // 15% a 40% vertical (área de la imagen)
-      const driftX = (Math.random() - 0.5) * 50; // desplazamiento horizontal
-      const fallY = Math.random() * 40 + 50; // caída lenta (50px a 90px)
+      const startX = Math.random() * 60 + 20;
+      const startY = Math.random() * 25 + 15;
+      const driftX = (Math.random() - 0.5) * 50;
+      const fallY = Math.random() * 40 + 50;
       const rotate = Math.random() * 360;
       const targetRotate = rotate + (Math.random() - 0.5) * 180;
-      const scale = Math.random() * 0.3 + 0.5; // escala entre 0.5 y 0.8
+      const scale = Math.random() * 0.3 + 0.5;
 
       return { id, startX, startY, driftX, fallY, rotate, targetRotate, scale };
     });
 
     setPetals((prev) => [...prev, ...newPetals]);
 
-    // Limpieza después de que acabe la animación (900ms)
     setTimeout(() => {
       setPetals((prev) => prev.filter((p) => !newPetals.some((np) => np.id === p.id)));
     }, 950);
   };
 
   const handleHoverStart = () => {
-    if (supportsHover) {
-      spawnPetals();
-    }
+    if (supportsHover) spawnPetals();
   };
 
   const handleTapStart = () => {
-    if (!supportsHover) {
-      spawnPetals();
-    }
+    if (!supportsHover) spawnPetals();
   };
 
+  // Hover premium: oferta eleva más y brilla más
   const cardVariants = {
-    initial: { 
-      opacity: 0, 
+    initial: {
+      opacity: 0,
       y: 20,
       backgroundColor: 'rgba(255, 255, 255, 0.7)',
-      boxShadow: '0 12px 32px rgba(248, 200, 220, 0.18)'
+      boxShadow: '0 12px 32px rgba(248, 200, 220, 0.18)',
     },
-    animate: { 
-      opacity: 1, 
+    animate: {
+      opacity: 1,
       y: 0,
       backgroundColor: 'rgba(255, 255, 255, 0.7)',
       boxShadow: '0 12px 32px rgba(248, 200, 220, 0.18)',
-      transition: { 
-        duration: 0.45, 
-        ease: 'easeOut' as const
-      }
+      transition: { duration: 0.45, ease: 'easeOut' as const },
     },
     hover: {
-      y: -5,
-      scale: 1.02,
+      y: isOffer ? -8 : -5,
+      scale: isOffer ? 1.025 : 1.02,
       backgroundColor: 'rgba(255, 255, 255, 1)',
-      boxShadow: '0 20px 40px rgba(248, 200, 220, 0.35)', // Brillo sutil y difuminado (halo)
-      transition: { 
-        duration: 0.35, 
-        ease: 'easeOut' as const
-      }
+      boxShadow: isOffer
+        ? '0 24px 48px rgba(248, 200, 220, 0.45), 0 0 0 1px rgba(248, 200, 220, 0.3)'
+        : '0 20px 40px rgba(248, 200, 220, 0.35)',
+      transition: { duration: 0.35, ease: 'easeOut' as const },
     },
     tap: {
       scale: 0.98,
-      transition: { 
-        duration: 0.12 
-      }
-    }
+      transition: { duration: 0.12 },
+    },
   };
 
   const activeVariants = isMotionEnabled
@@ -122,7 +117,7 @@ export function ProductCard({ product }: ProductCardProps) {
         initial: { opacity: 1, y: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', boxShadow: '0 12px 32px rgba(248, 200, 220, 0.18)' },
         animate: { opacity: 1, y: 0, backgroundColor: 'rgba(255, 255, 255, 0.7)', boxShadow: '0 12px 32px rgba(248, 200, 220, 0.18)' },
         hover: {},
-        tap: {}
+        tap: {},
       };
 
   return (
@@ -135,8 +130,15 @@ export function ProductCard({ product }: ProductCardProps) {
       whileTap={isMotionEnabled ? 'tap' : undefined}
       onHoverStart={handleHoverStart}
       onTapStart={handleTapStart}
-      className="group relative rounded-[32px] border border-softPink/20 bg-white/70 backdrop-blur-sm p-5 shadow-soft"
+      // Borde degradado animado solo en productos con oferta
+      className={`group relative rounded-[32px] border bg-white/70 backdrop-blur-sm p-5 shadow-soft ${
+        isOffer
+          ? 'offer-card-border border-transparent'
+          : 'border-softPink/20'
+      }`}
+      style={isOffer ? { isolation: 'isolate' } : undefined}
     >
+      {/* Pétalos Sakura — solo en oferta */}
       <AnimatePresence>
         {petals.map((petal) => (
           <motion.svg
@@ -167,34 +169,44 @@ export function ProductCard({ product }: ProductCardProps) {
         ))}
       </AnimatePresence>
 
-      <Link
-        href={`/products/${product.id}`}
-        className="block overflow-hidden rounded-[24px] bg-gradient-to-tr from-softPink/10 via-surface/40 to-sky/20 p-6"
-      >
-        <motion.div
-          animate={isMotionEnabled ? { y: [0, -4, 0] } : undefined}
-          transition={{
-            duration: 7,
-            repeat: Infinity,
-            ease: 'easeInOut' as const,
-          }}
-          className="h-48 w-full flex items-center justify-center"
+      {/* Contenedor de imagen con badge superpuesto */}
+      <div className="relative">
+        {/* Badge de oferta — esquina superior izquierda de la imagen */}
+        {isOffer && mounted && (
+          <div className="absolute top-2 left-2 z-20">
+            <OfferBadge product={product} size="sm" />
+          </div>
+        )}
+
+        <Link
+          href={`/products/${product.id}`}
+          className="block overflow-hidden rounded-[24px] bg-gradient-to-tr from-softPink/10 via-surface/40 to-sky/20 p-6"
         >
           <motion.div
-            variants={isMotionEnabled ? { hover: { scale: 1.04 } } : {}}
-            transition={{ duration: 0.35, ease: 'easeOut' as const }}
-            className="h-full w-full"
+            animate={isMotionEnabled ? { y: [0, -4, 0] } : undefined}
+            transition={{
+              duration: 7,
+              repeat: Infinity,
+              ease: 'easeInOut' as const,
+            }}
+            className="h-48 w-full flex items-center justify-center"
           >
-            <ImageOrFallback
-              src={product.image}
-              alt={product.name}
-              width={360}
-              height={240}
-              className="h-full w-full object-contain"
-            />
+            <motion.div
+              variants={isMotionEnabled ? { hover: { scale: 1.04 } } : {}}
+              transition={{ duration: 0.35, ease: 'easeOut' as const }}
+              className="h-full w-full"
+            >
+              <ImageOrFallback
+                src={product.image}
+                alt={product.name}
+                width={360}
+                height={240}
+                className="h-full w-full object-contain"
+              />
+            </motion.div>
           </motion.div>
-        </motion.div>
-      </Link>
+        </Link>
+      </div>
 
       <div className="mt-5 space-y-3">
         <div className="flex items-center justify-between gap-2 text-[10px] sm:text-xs uppercase tracking-[0.18em] text-[#8C84A2] font-semibold">
@@ -213,7 +225,12 @@ export function ProductCard({ product }: ProductCardProps) {
             <PriceDisplay product={product} variant="card" />
             <RatingStars rating={product.rating} />
           </div>
-          <Button type="button" onClick={() => addProduct(product)} className="whitespace-nowrap">
+          {/* Botón con shine solo cuando el producto es oferta */}
+          <Button
+            type="button"
+            onClick={() => addProduct(product)}
+            className={`whitespace-nowrap ${isOffer ? 'offer-shine' : ''}`}
+          >
             Agregar
           </Button>
         </div>

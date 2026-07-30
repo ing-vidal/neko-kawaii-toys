@@ -1,5 +1,6 @@
 'use client';
 
+import { useReducedMotion } from 'framer-motion';
 import type { Product } from '@product-types/product';
 import { hasValidOffer, getDiscountPercent, getSavings } from '@lib/offers';
 
@@ -16,10 +17,21 @@ interface PriceDisplayProps {
 
 /**
  * Muestra el precio de un producto con soporte de ofertas.
- * Reutilizable en cualquier contexto: cards, detalles, resúmenes.
+ * Cuando hay oferta, el precio destaca con:
+ * - animación "price-pop" al aparecer (CSS, una sola vez)
+ * - glow rosa sutil permanente
+ * Respeta prefers-reduced-motion mediante la clase CSS.
  */
 export function PriceDisplay({ product, variant }: PriceDisplayProps) {
   const isOffer = hasValidOffer(product);
+  const shouldReduceMotion = useReducedMotion();
+
+  const offerPriceClasses = [
+    'offer-price-glow',
+    !shouldReduceMotion ? 'price-pop' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   /* ─── VARIANTE CARD ────────────────────────────────────────────── */
   if (variant === 'card') {
@@ -43,8 +55,8 @@ export function PriceDisplay({ product, variant }: PriceDisplayProps) {
         <span className="block text-sm font-semibold text-[#8C84A2] line-through">
           ${product.price}
         </span>
-        {/* Precio de oferta destacado */}
-        <span className="block text-2xl font-black text-[#C44A70]">
+        {/* Precio de oferta destacado con pop + glow */}
+        <span className={`block text-2xl font-black text-[#C44A70] ${offerPriceClasses}`}>
           ${product.offerPrice}
         </span>
       </div>
@@ -75,8 +87,10 @@ export function PriceDisplay({ product, variant }: PriceDisplayProps) {
       </div>
       {/* Precio normal tachado */}
       <p className="text-base font-semibold text-[#8C84A2] line-through">${product.price}</p>
-      {/* Precio de oferta */}
-      <p className="text-3xl font-black text-[#C44A70]">${product.offerPrice}</p>
+      {/* Precio de oferta con pop + glow */}
+      <p className={`text-3xl font-black text-[#C44A70] ${offerPriceClasses}`}>
+        ${product.offerPrice}
+      </p>
       {/* Ahorro */}
       <p className="text-sm font-bold text-[#5D4E6D]/70">
         ✨ Ahorras ${savings}
