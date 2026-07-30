@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { readAdminProducts, writeAdminProducts, readAdminCategories } from '../../utils';
 import type { Product } from '@product-types/product';
 
-const VALID_COLUMNS = ['nombre', 'descripcion', 'precio', 'stock', 'categoria', 'imagen', 'estado', 'sku'];
+
 
 function slugify(name: string): string {
   return name

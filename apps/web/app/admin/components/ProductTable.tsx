@@ -6,11 +6,6 @@ import { useToast } from '@hooks/useToast';
 import { DeleteDialog } from './DeleteDialog';
 import type { Product } from '@product-types/product';
 
-interface Column {
-  key: string;
-  label: string;
-  sortable?: boolean;
-}
 
 interface ProductTableProps {
   products: Product[];

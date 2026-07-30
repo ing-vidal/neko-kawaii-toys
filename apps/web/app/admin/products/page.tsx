@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useProducts } from '@hooks/useProducts';
-import { useToast } from '@hooks/useToast';
 import { AdminSearchBar } from '../components/AdminSearchBar';
 import { ProductFilters } from '../components/ProductFilters';
 import { ProductTable } from '../components/ProductTable';
@@ -18,7 +17,6 @@ import { CsvExporter } from '../components/CsvExporter';
 const DEFAULT_CATEGORIES = ['Figuras', 'Peluches', 'Anime', 'Accesorios', 'Coleccionables'];
 
 export default function ProductsPage() {
-  const { addToast } = useToast();
   const { data, loading, error, params, setPage, setSearch, setFilters, refresh } =
     useProducts({ page: 1, limit: 20, sortBy: 'createdAt', sortDir: 'desc' });
 
