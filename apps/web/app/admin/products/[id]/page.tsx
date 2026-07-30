@@ -1,64 +1,115 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { ProductForm } from '../../components/ProductForm';
 import type { Product } from '@product-types/product';
 
 const DEFAULT_CATEGORIES = ['Figuras', 'Peluches', 'Anime', 'Accesorios', 'Coleccionables'];
 
+type PageState =
+  | { status: 'loading' }
+  | { status: 'found'; product: Product; categories: string[] }
+  | { status: 'not-found'; id: string }
+  | { status: 'error'; message: string; id: string };
+
 export default function EditProductPage() {
   const params = useParams();
   const id = params?.id as string;
 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  // Single state object avoids the "impossible" intermediate states that caused the flash
+  const [state, setState] = useState<PageState>({ status: 'loading' });
+
+  // Abort controller ref to cancel stale requests on re-renders / Strict Mode double-invoke
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!id) return;
-    const loadData = async () => {
-      setLoading(true);
+
+    // Cancel any in-flight request from a previous render
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    // Always reset to loading when id changes — prevents stale "not found" flash
+    setState({ status: 'loading' });
+
+    const load = async () => {
       try {
         const [productRes, catsRes] = await Promise.all([
-          fetch(`/api/admin/products/${encodeURIComponent(id)}`, { cache: 'no-store' }),
-          fetch('/api/admin/categories', { cache: 'no-store' }),
+          fetch(`/api/admin/products/${encodeURIComponent(id)}`, {
+            cache: 'no-store',
+            signal: controller.signal,
+          }),
+          fetch('/api/admin/categories', {
+            cache: 'no-store',
+            signal: controller.signal,
+          }),
         ]);
 
+        // Aborted — don't update state at all
+        if (controller.signal.aborted) return;
+
         if (productRes.status === 404) {
-          setNotFound(true);
+          setState({ status: 'not-found', id });
           return;
         }
 
-        if (productRes.ok) {
-          const p = (await productRes.json()) as Product;
-          setProduct(p);
+        if (!productRes.ok) {
+          setState({
+            status: 'error',
+            message: `Error ${productRes.status} al cargar el producto.`,
+            id,
+          });
+          return;
         }
 
+        const product = (await productRes.json()) as Product;
+
+        let categories = DEFAULT_CATEGORIES;
         if (catsRes.ok) {
           const cats = (await catsRes.json()) as string[];
           if (Array.isArray(cats) && cats.length > 0) {
-            setCategories(Array.from(new Set([...DEFAULT_CATEGORIES, ...cats])));
+            categories = Array.from(new Set([...DEFAULT_CATEGORIES, ...cats]));
           }
         }
-      } finally {
-        setLoading(false);
+
+        // Only update state if this request is still the current one
+        if (!controller.signal.aborted) {
+          setState({ status: 'found', product, categories });
+        }
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') return; // Expected — not an error
+        setState({
+          status: 'error',
+          message: err instanceof Error ? err.message : 'Error desconocido.',
+          id,
+        });
       }
     };
-    loadData();
+
+    load();
+
+    return () => {
+      controller.abort();
+    };
   }, [id]);
 
-  if (loading) {
+  // ── Render states ────────────────────────────────────────────────────────
+
+  if (state.status === 'loading') {
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-2 text-sm text-slate-400 animate-pulse">
+        {/* Breadcrumb skeleton */}
+        <div className="flex items-center gap-2 animate-pulse">
           <div className="h-3.5 w-20 rounded bg-slate-100" />
           <div className="h-3.5 w-3 rounded bg-slate-100" />
-          <div className="h-3.5 w-28 rounded bg-slate-200" />
+          <div className="h-3.5 w-32 rounded bg-slate-200" />
         </div>
+        {/* Title skeleton */}
         <div className="h-9 w-64 rounded-xl bg-slate-200 animate-pulse" />
+        {/* Form skeleton */}
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
             <div className="space-y-4">
@@ -79,7 +130,7 @@ export default function EditProductPage() {
     );
   }
 
-  if (notFound || !product) {
+  if (state.status === 'not-found') {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-3xl">
@@ -87,7 +138,11 @@ export default function EditProductPage() {
         </div>
         <h2 className="text-xl font-bold text-slate-700">Producto no encontrado</h2>
         <p className="text-sm text-slate-500">
-          El ID <code className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-xs">{id}</code> no existe en el catálogo.
+          El ID{' '}
+          <code className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-xs">
+            {state.id}
+          </code>{' '}
+          no existe en el catálogo.
         </p>
         <Link
           href="/admin/products"
@@ -99,11 +154,42 @@ export default function EditProductPage() {
     );
   }
 
+  if (state.status === 'error') {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 gap-4">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-50 text-3xl">
+          ⚠️
+        </div>
+        <h2 className="text-xl font-bold text-slate-700">Error al cargar</h2>
+        <p className="text-sm text-slate-500">{state.message}</p>
+        <div className="flex gap-3 mt-2">
+          <button
+            onClick={() => setState({ status: 'loading' })}
+            className="rounded-xl bg-gradient-to-r from-softPink to-lavender px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:opacity-90 transition"
+          >
+            Reintentar
+          </button>
+          <Link
+            href="/admin/products"
+            className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 transition"
+          >
+            Volver a productos
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // status === 'found'
+  const { product, categories } = state;
+
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-slate-500">
-        <Link href="/admin/products" className="hover:text-slate-700 transition">Productos</Link>
+        <Link href="/admin/products" className="hover:text-slate-700 transition">
+          Productos
+        </Link>
         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
