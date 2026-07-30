@@ -1,7 +1,5 @@
 'use client';
 
-'use client';
-
 import { useMemo } from 'react';
 import { useAdminCatalog } from '@hooks/useAdminCatalog';
 import type { Product } from '@product-types/product';
