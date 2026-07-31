@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useToast } from '@hooks/useToast';
 import { DeleteDialog } from './DeleteDialog';
+import { StockBadge } from '@components/StockBadge';
 import type { Product } from '@product-types/product';
 
 
@@ -103,18 +104,16 @@ export function ProductTable({
               const isSelected = selectedIds.includes(product.id);
               const status = product.status ?? 'active';
               const statusInfo = STATUS_LABELS[status] ?? STATUS_LABELS.active;
-              const stockBadge =
-                product.stock === 0
-                  ? 'text-rose-600 font-semibold'
-                  : product.stock <= 5
-                  ? 'text-amber-600 font-semibold'
-                  : 'text-slate-700';
 
               return (
                 <tr
                   key={product.id}
                   className={`border-b border-slate-50 transition-colors last:border-0 ${
-                    isSelected ? 'bg-lavender/5' : 'hover:bg-slate-50/60'
+                    isSelected
+                      ? 'bg-lavender/5'
+                      : product.stock <= 0
+                      ? 'admin-row-out-of-stock hover:bg-rose-50/70'
+                      : 'hover:bg-slate-50/60'
                   }`}
                 >
                   {/* Checkbox */}
@@ -187,8 +186,8 @@ export function ProductTable({
                   </td>
 
                   {/* Stock */}
-                  <td className={`px-3 py-3 tabular-nums ${stockBadge}`}>
-                    {product.stock}
+                  <td className="px-3 py-3">
+                    <StockBadge stock={product.stock} variant="admin" />
                   </td>
 
                   {/* Status */}

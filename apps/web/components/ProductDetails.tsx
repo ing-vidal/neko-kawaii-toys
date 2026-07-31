@@ -15,7 +15,10 @@ import { useCart } from '@hooks/useCart';
 import type { Product } from '@product-types/product';
 import { PriceDisplay } from './PriceDisplay';
 import { OfferBadge } from './OfferBadge';
+import { OutOfStockOverlay } from './OutOfStockOverlay';
+import { StockBadge } from './StockBadge';
 import { hasValidOffer } from '@lib/offers';
+import { isOutOfStock } from '@lib/stock';
 
 interface ProductDetailsProps {
   product: Product;
@@ -46,6 +49,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
   const spotlightBg = useMotionTemplate`radial-gradient(circle 180px at ${mouseX}px ${mouseY}px, rgba(255,255,255,0.07) 0%, transparent 75%)`;
 
   const isOffer = hasValidOffer(product);
+  const outOfStock = isOutOfStock(product.stock);
   const isMotionEnabled = mounted && !shouldReduceMotion;
 
   useEffect(() => {
@@ -57,9 +61,9 @@ export function ProductDetails({ product }: ProductDetailsProps) {
     return () => mq.removeEventListener('change', handler);
   }, []);
 
-  // Occasional sakura petals around the image — offer only, low frequency
+  // Occasional sakura petals around the image — offer only, low frequency, not when out of stock
   useEffect(() => {
-    if (!isOffer || !isMotionEnabled) return;
+    if (!isOffer || !isMotionEnabled || outOfStock) return;
 
     const spawnPetals = () => {
       const count = Math.floor(Math.random() * 2) + 2;
@@ -88,7 +92,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
   }, [isOffer, isMotionEnabled]);
 
   const handleMouseMoveImage = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isOffer || !supportsHover || !isMotionEnabled) return;
+    if (!isOffer || !supportsHover || !isMotionEnabled || outOfStock) return;
     const rect = e.currentTarget.getBoundingClientRect();
     mouseX.set(e.clientX - rect.left);
     mouseY.set(e.clientY - rect.top);
@@ -160,16 +164,23 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             )}
 
             <div className="overflow-hidden rounded-[26px] bg-gradient-to-tr from-softPink/10 via-surface/40 to-sky/25 p-6 sm:p-8 relative z-[2]">
-              {/* Floating image — offer only */}
-              <div className={isOffer && isMotionEnabled ? 'offer-float' : ''}>
+              {/* Floating image — offer only, not when out of stock */}
+              <div className={isOffer && isMotionEnabled && !outOfStock ? 'offer-float' : ''}>
                 <ImageOrFallback
                   src={product.image}
                   alt={product.name}
                   width={540}
                   height={540}
-                  className="mx-auto h-[420px] w-full object-contain transition-transform duration-500 hover:scale-105"
+                  className={`mx-auto h-[420px] w-full object-contain transition-all duration-500 ${
+                    outOfStock
+                      ? 'opacity-55 grayscale-[30%]'
+                      : 'hover:scale-105'
+                  }`}
                 />
               </div>
+
+              {/* Out-of-stock overlay */}
+              <OutOfStockOverlay show={outOfStock} className="rounded-[26px]" />
             </div>
           </div>
         </div>
@@ -195,8 +206,21 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             <div className="grid gap-3 sm:grid-cols-2">
               <PriceDisplay product={product} variant="detail" />
               <div className="rounded-3xl bg-gradient-to-tr from-softPink/5 to-sky/5 border border-softPink/15 p-5">
-                <p className="text-xs uppercase tracking-[0.2em] text-[#8C84A2] font-bold">Stock</p>
-                <p className="mt-2 text-3xl font-black text-textPrimary">{product.stock}</p>
+                {outOfStock ? (
+                  // Out-of-stock: show "Estado / Agotado" in red
+                  <>
+                    <p className="text-xs uppercase tracking-[0.2em] text-[#8C84A2] font-bold">Estado</p>
+                    <p className="mt-2 text-xl font-black text-rose-600">Agotado</p>
+                    <StockBadge stock={product.stock} variant="detail" />
+                  </>
+                ) : (
+                  // In-stock: show availability badge
+                  <>
+                    <p className="text-xs uppercase tracking-[0.2em] text-[#8C84A2] font-bold">Stock</p>
+                    <p className="mt-2 text-3xl font-black text-textPrimary">{product.stock}</p>
+                    <StockBadge stock={product.stock} variant="detail" />
+                  </>
+                )}
               </div>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pt-2">
@@ -207,14 +231,33 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             </div>
           </div>
 
-          {/* CTA with shine — offer only */}
-          <Button
-            type="button"
-            onClick={() => addProduct(product)}
-            className={`mt-6 w-full py-4 text-base ${isOffer ? 'offer-shine' : ''}`}
-          >
-            Agregar al carrito
-          </Button>
+          {/* CTA — changes based on stock */}
+          {outOfStock ? (
+            <>
+              <Button
+                type="button"
+                variant="disabled"
+                disabled
+                aria-disabled="true"
+                className="mt-6 w-full py-4 text-base"
+              >
+                Agotado
+              </Button>
+              <p className="mt-3 text-center text-sm text-[#8C84A2] leading-relaxed">
+                Este producto está temporalmente agotado.{' '}
+                <br className="hidden sm:block" />
+                Vuelve más tarde para consultar su disponibilidad.
+              </p>
+            </>
+          ) : (
+            <Button
+              type="button"
+              onClick={() => addProduct(product)}
+              className={`mt-6 w-full py-4 text-base ${isOffer ? 'offer-shine' : ''}`}
+            >
+              Agregar al carrito
+            </Button>
+          )}
         </div>
       </div>
     </div>

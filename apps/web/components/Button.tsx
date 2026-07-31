@@ -3,14 +3,16 @@ import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   href?: string;
-  variant?: 'primary' | 'secondary' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'disabled';
 }
 
 export function Button({ variant = 'primary', className = '', href, children, type = 'button', ...props }: ButtonProps) {
   const baseStyles =
     'inline-flex items-center justify-center rounded-full px-6 py-3.5 text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-softPink/40';
   const variantStyles =
-    variant === 'secondary'
+    variant === 'disabled'
+      ? 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-200'
+      : variant === 'secondary'
       ? 'bg-white/80 backdrop-blur-sm text-textPrimary border border-softPink/40 shadow-sm hover:bg-softPink/10 hover:border-softPink/60 hover:scale-[1.03] active:scale-95'
       : variant === 'ghost'
       ? 'bg-transparent text-textPrimary hover:bg-softPink/15 hover:scale-[1.02] active:scale-97'

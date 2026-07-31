@@ -16,7 +16,10 @@ import { Button } from './Button';
 import { ImageOrFallback } from './ImageOrFallback';
 import { PriceDisplay } from './PriceDisplay';
 import { OfferBadge } from './OfferBadge';
+import { OutOfStockOverlay } from './OutOfStockOverlay';
+import { StockBadge } from './StockBadge';
 import { hasValidOffer } from '@lib/offers';
+import { isOutOfStock } from '@lib/stock';
 
 interface ProductCardProps {
   product: Product;
@@ -46,6 +49,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const spotlightBg = useMotionTemplate`radial-gradient(circle 150px at ${mouseX}px ${mouseY}px, rgba(255,255,255,0.07) 0%, transparent 80%)`;
 
   const isOffer = hasValidOffer(product);
+  const outOfStock = isOutOfStock(product.stock);
   const isMotionEnabled = mounted && !shouldReduceMotion;
 
   useEffect(() => {
@@ -57,9 +61,9 @@ export function ProductCard({ product }: ProductCardProps) {
     return () => mq.removeEventListener('change', handler);
   }, []);
 
-  // Petals — spawn only on offer products
+  // Petals — spawn only on offer products that are in stock
   const spawnPetals = () => {
-    if (!isMotionEnabled || !isOffer) return;
+    if (!isMotionEnabled || !isOffer || outOfStock) return;
     const count = Math.floor(Math.random() * 2) + 2;
     const newPetals = Array.from({ length: count }).map((_, i) => {
       const id = Date.now() + i + Math.random();
@@ -82,7 +86,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   // Mouse handlers
   const handleMouseMoveCard = (e: React.MouseEvent<HTMLElement>) => {
-    if (!isOffer || !supportsHover || !isMotionEnabled) return;
+    if (!isOffer || !supportsHover || !isMotionEnabled || outOfStock) return;
     const rect = e.currentTarget.getBoundingClientRect();
     mouseX.set(e.clientX - rect.left);
     mouseY.set(e.clientY - rect.top);
@@ -179,22 +183,25 @@ export function ProductCard({ product }: ProductCardProps) {
 
       {/* Image area with badge overlay */}
       <div className="relative z-[2]">
-        {isOffer && mounted && (
+        {isOffer && mounted && !outOfStock && (
           <div className="absolute top-2 left-2 z-20">
             <OfferBadge product={product} size="sm" />
           </div>
         )}
         <Link
           href={`/products/${product.id}`}
-          className="block overflow-hidden rounded-[24px] bg-gradient-to-tr from-softPink/10 via-surface/40 to-sky/20 p-6"
+          className="relative block overflow-hidden rounded-[24px] bg-gradient-to-tr from-softPink/10 via-surface/40 to-sky/20 p-6"
         >
+          {/* Out-of-stock overlay */}
+          <OutOfStockOverlay show={outOfStock} />
+
           <motion.div
-            animate={isMotionEnabled ? { y: [0, -4, 0] } : undefined}
+            animate={isMotionEnabled && !outOfStock ? { y: [0, -4, 0] } : undefined}
             transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' as const }}
             className="h-48 w-full flex items-center justify-center"
           >
             <motion.div
-              variants={isMotionEnabled ? { hover: { scale: 1.05 } } : {}}
+              variants={isMotionEnabled && !outOfStock ? { hover: { scale: 1.05 } } : {}}
               transition={{ duration: 0.35, ease: 'easeOut' as const }}
               className="h-full w-full"
             >
@@ -203,7 +210,9 @@ export function ProductCard({ product }: ProductCardProps) {
                 alt={product.name}
                 width={360}
                 height={240}
-                className="h-full w-full object-contain"
+                className={`h-full w-full object-contain transition-all duration-300 ${
+                  outOfStock ? 'opacity-55 grayscale-[30%]' : ''
+                }`}
               />
             </motion.div>
           </motion.div>
@@ -227,15 +236,29 @@ export function ProductCard({ product }: ProductCardProps) {
           <div>
             <PriceDisplay product={product} variant="card" />
             <RatingStars rating={product.rating} />
+            {/* Stock availability indicator */}
+            <StockBadge stock={product.stock} variant="card" />
           </div>
-          {/* Shine on button only when product has an offer */}
-          <Button
-            type="button"
-            onClick={() => addProduct(product)}
-            className={`whitespace-nowrap ${isOffer ? 'offer-shine' : ''}`}
-          >
-            Agregar
-          </Button>
+          {/* Shine on button only when product has an offer and is in stock */}
+          {outOfStock ? (
+            <Button
+              type="button"
+              variant="disabled"
+              disabled
+              aria-disabled="true"
+              className="whitespace-nowrap"
+            >
+              Agotado
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={() => addProduct(product)}
+              className={`whitespace-nowrap ${isOffer ? 'offer-shine' : ''}`}
+            >
+              Agregar
+            </Button>
+          )}
         </div>
       </div>
     </motion.article>

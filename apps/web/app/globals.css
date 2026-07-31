@@ -319,13 +319,31 @@ img {
   animation: price-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
+/* ─── Out-of-Stock Visual States ─────────────────────────────────────────── */
+
+/* Slow pulse for the AGOTADO badge — 3s to keep it very subtle, not distracting */
+@keyframes out-of-stock-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.68; }
+}
+
+.out-of-stock-pulse {
+  animation: out-of-stock-pulse 3s ease-in-out infinite;
+}
+
+/* Admin table row tint for out-of-stock products */
+.admin-row-out-of-stock {
+  background-color: rgba(254, 242, 242, 0.6) !important;
+}
+
 /* ─── Respect user preferences ──────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .offer-shine::after,
   .offer-border-gradient,
   .offer-badge,
   .offer-float,
-  .price-pop {
+  .price-pop,
+  .out-of-stock-pulse {
     animation: none !important;
   }
   .offer-badge { opacity: 1; transform: scale(1); }

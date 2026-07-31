@@ -47,6 +47,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [items]);
 
   const addProduct = (product: Product) => {
+    // Guard: do not add out-of-stock products to cart
+    if (product.stock <= 0) return;
+
     setItems((current) => {
       const existing = current.find((item) => item.product.id === product.id);
       if (existing) {
