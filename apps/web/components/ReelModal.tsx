@@ -32,8 +32,8 @@ export function ReelModal({ isOpen, onClose, reelUrl, title, thumbnail }: ReelMo
         </div>
 
         <div className="mt-4 flex gap-4">
-          <div className="h-28 w-28 flex-shrink-0 overflow-hidden rounded-[16px] bg-white border border-softPink/20 p-2 flex items-center justify-center">
-            <ImageOrFallback src={thumbnail} alt={title ?? 'Thumbnail'} width={112} height={112} className="max-h-full w-auto object-contain" />
+            <div className="h-28 w-28 flex-shrink-0 overflow-hidden rounded-[16px] bg-white border border-softPink/20 p-2 flex items-center justify-center">
+            <ImageOrFallback src={thumbnail ?? ''} alt={title ?? 'Thumbnail'} width={112} height={112} className="max-h-full w-auto object-contain" />
           </div>
           <div className="flex-1">
             <p className="text-sm text-[#8C84A2]">Se abrirá en una nueva pestaña.</p>
