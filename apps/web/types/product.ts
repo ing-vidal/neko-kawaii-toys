@@ -22,4 +22,8 @@ export interface Product {
   hasOffer?: boolean;
   /** Precio de oferta. Solo válido cuando hasOffer === true */
   offerPrice?: number | null;
+  /** Indica si el producto tiene un Reel/Video asociado (Instagram) */
+  hasReel?: boolean;
+  /** URL del Reel (normalmente Instagram) */
+  reelUrl?: string | null;
 }

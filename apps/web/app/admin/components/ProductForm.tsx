@@ -45,6 +45,8 @@ export function ProductForm({ initialProduct, categories, mode }: ProductFormPro
   const [offerPrice, setOfferPrice] = useState(
     initialProduct?.offerPrice != null ? String(initialProduct.offerPrice) : ''
   );
+  const [hasReel, setHasReel] = useState(initialProduct?.hasReel ?? false);
+  const [reelUrl, setReelUrl] = useState(initialProduct?.reelUrl ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -58,6 +60,16 @@ export function ProductForm({ initialProduct, categories, mode }: ProductFormPro
         next.offerPrice = 'Precio de oferta inválido.';
       else if (Number(offerPrice) >= Number(price))
         next.offerPrice = 'El precio de oferta debe ser menor al precio normal.';
+    }
+    if (hasReel) {
+      try {
+        const u = new URL(reelUrl);
+        if (!reelUrl.trim()) next.reelUrl = 'La URL del video es requerida.';
+        // Optional: prefer instagram links but allow others
+        else if (!u.protocol.startsWith('http')) next.reelUrl = 'URL inválida.';
+      } catch {
+        next.reelUrl = 'URL inválida.';
+      }
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -93,7 +105,9 @@ export function ProductForm({ initialProduct, categories, mode }: ProductFormPro
       status,
       createdAt: initialProduct?.createdAt ?? new Date().toISOString(),
       hasOffer,
-      offerPrice: hasOffer ? Number(offerPrice) : null,
+        offerPrice: hasOffer ? Number(offerPrice) : null,
+        hasReel,
+        reelUrl: hasReel ? (reelUrl.trim() || null) : null,
     };
 
     try {
@@ -280,7 +294,38 @@ export function ProductForm({ initialProduct, categories, mode }: ProductFormPro
               </div>
             )}
           </div>
-        </div>
+        
+              {/* Reel / Video */}
+              <div className="rounded-2xl border border-softPink/30 bg-gradient-to-tr from-softPink/5 to-lavender/5 p-5 space-y-4">
+                <p className="text-sm font-bold text-slate-700">🎬 Video / Reel</p>
+                <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={hasReel}
+                    onChange={(e) => {
+                      setHasReel(e.target.checked);
+                      if (!e.target.checked) { setReelUrl(''); setErrors((p) => ({ ...p, reelUrl: '' })); }
+                    }}
+                    className="h-4 w-4 rounded accent-softPink"
+                  />
+                  <span className="text-sm font-medium text-slate-700">Tiene Reel/Video</span>
+                </label>
+
+                {hasReel && (
+                  <div>
+                    <label className={LABEL_CLASS}>URL del Reel / Video</label>
+                    <input
+                      value={reelUrl}
+                      onChange={(e) => { setReelUrl(e.target.value); setErrors((p) => ({ ...p, reelUrl: '' })); }}
+                      placeholder="Ej. https://www.instagram.com/reel/XXXXXXXXX/"
+                      className={`${FIELD_CLASS} ${errors.reelUrl ? 'border-rose-300 bg-rose-50' : ''}`}
+                    />
+                    {errors.reelUrl && <p className="mt-1 text-xs text-rose-500">{errors.reelUrl}</p>}
+                  </div>
+                )}
+              </div>
+
+            </div>
 
         {/* Right column — image + status + preview */}
         <div className="space-y-5">

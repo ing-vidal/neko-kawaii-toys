@@ -19,6 +19,7 @@ import { OutOfStockOverlay } from './OutOfStockOverlay';
 import { StockBadge } from './StockBadge';
 import { hasValidOffer } from '@lib/offers';
 import { isOutOfStock } from '@lib/stock';
+import { ReelModal } from './ReelModal';
 
 interface ProductDetailsProps {
   product: Product;
@@ -39,6 +40,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
   const { addProduct } = useCart();
   const [petals, setPetals] = useState<Petal[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [showReel, setShowReel] = useState(false);
   const [supportsHover, setSupportsHover] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const shouldReduceMotion = useReducedMotion();
@@ -250,13 +252,21 @@ export function ProductDetails({ product }: ProductDetailsProps) {
               </p>
             </>
           ) : (
-            <Button
-              type="button"
-              onClick={() => addProduct(product)}
-              className={`mt-6 w-full py-4 text-base ${isOffer ? 'offer-shine' : ''}`}
-            >
-              Agregar al carrito
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              {product.hasReel && product.reelUrl && (
+                <Button type="button" variant="secondary" onClick={() => setShowReel(true)} className="w-full sm:w-auto">
+                  Ver video
+                </Button>
+              )}
+              <Button
+                type="button"
+                onClick={() => addProduct(product)}
+                className={`w-full sm:w-auto mt-0 ${isOffer ? 'offer-shine' : ''}`}
+              >
+                Agregar al carrito
+              </Button>
+              <ReelModal isOpen={Boolean(showReel)} onClose={() => setShowReel(false)} reelUrl={product.reelUrl} title={product.name} thumbnail={product.image} />
+            </div>
           )}
         </div>
       </div>

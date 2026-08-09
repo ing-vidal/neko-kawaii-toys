@@ -20,6 +20,7 @@ import { OutOfStockOverlay } from './OutOfStockOverlay';
 import { StockBadge } from './StockBadge';
 import { hasValidOffer } from '@lib/offers';
 import { isOutOfStock } from '@lib/stock';
+// Reel modal handled on product detail page only
 
 interface ProductCardProps {
   product: Product;
@@ -217,6 +218,8 @@ export function ProductCard({ product }: ProductCardProps) {
             </motion.div>
           </motion.div>
         </Link>
+
+        {/* Video button removed from catalog card; available on product detail page only */}
       </div>
 
       {/* Product info */}
@@ -239,26 +242,27 @@ export function ProductCard({ product }: ProductCardProps) {
             {/* Stock availability indicator */}
             <StockBadge stock={product.stock} variant="card" />
           </div>
-          {/* Shine on button only when product has an offer and is in stock */}
-          {outOfStock ? (
-            <Button
-              type="button"
-              variant="disabled"
-              disabled
-              aria-disabled="true"
-              className="whitespace-nowrap"
-            >
-              Agotado
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              onClick={() => addProduct(product)}
-              className={`whitespace-nowrap ${isOffer ? 'offer-shine' : ''}`}
-            >
-              Agregar
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {outOfStock ? (
+              <Button
+                type="button"
+                variant="disabled"
+                disabled
+                aria-disabled="true"
+                className="whitespace-nowrap"
+              >
+                Agotado
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={() => addProduct(product)}
+                className={`whitespace-nowrap ${isOffer ? 'offer-shine' : ''}`}
+              >
+                Agregar
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </motion.article>
