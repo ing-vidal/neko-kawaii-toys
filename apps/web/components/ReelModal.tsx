@@ -34,31 +34,35 @@ export function ReelModal({ isOpen, onClose, reelUrl, title, thumbnail, anchorRe
     const compute = () => {
       const el = modalRef.current;
       const mw = el ? el.offsetWidth : 320;
-      const mh = el ? el.offsetHeight : 160;
-      const padding = 8;
-      // Try to place below the anchor
-      let left = Math.round(anchorRect.left);
-      let top = Math.round(anchorRect.top + anchorRect.height + 8);
+      const mh = el ? el.offsetHeight : 390;
+      const padding = 12;
 
-      // adjust horizontal overflow
+      // Place the modal centered over the highlighted product frame.
+      let left = Math.round(anchorRect.left + anchorRect.width / 2 - mw / 2);
+      let top = Math.round(anchorRect.top + anchorRect.height / 2 - mh / 2);
+
+      // Keep the floating panel within the viewport.
+      if (left < padding) left = padding;
       if (left + mw + padding > window.innerWidth) {
         left = Math.max(padding, window.innerWidth - mw - padding);
       }
-      // if not enough space below, place above
+
+      if (top < padding) top = padding;
       if (top + mh + padding > window.innerHeight) {
-        const altTop = Math.round(anchorRect.top - mh - 8);
-        if (altTop > padding) top = altTop;
-        else top = Math.max(padding, window.innerHeight - mh - padding);
+        top = Math.max(padding, window.innerHeight - mh - padding);
       }
 
       setPos({ left, top });
     };
 
     // compute after a tick to allow modal size measurement
-    setTimeout(compute, 0);
+    const t = window.setTimeout(compute, 0);
     const onResize = () => compute();
     window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+    return () => {
+      window.clearTimeout(t);
+      window.removeEventListener('resize', onResize);
+    };
   }, [isOpen, anchorRect]);
 
   if (!isOpen || !reelUrl) return null;
@@ -73,7 +77,7 @@ export function ReelModal({ isOpen, onClose, reelUrl, title, thumbnail, anchorRe
   };
 
   return (
-    <div className="fixed inset-0 z-50 p-0 pointer-events-none">
+    <div className="fixed inset-0 z-50 p-0">
       {/* backdrop */}
       <div
         onClick={onClose}
@@ -83,7 +87,7 @@ export function ReelModal({ isOpen, onClose, reelUrl, title, thumbnail, anchorRe
       <div
         ref={modalRef}
         style={pos ? { left: pos.left, top: pos.top } : undefined}
-        className={`absolute z-60 w-full max-w-md pointer-events-auto ${pos ? '' : 'inset-0 m-auto flex'} `}
+        className={`absolute z-[60] w-full max-w-md ${pos ? 'pointer-events-auto' : 'inset-0 m-auto flex pointer-events-auto'} `}
       >
         <div className="relative overflow-hidden rounded-[18px] border border-softPink/30 bg-white/95 backdrop-blur-xl p-4 shadow-[0_18px_40px_rgba(248,200,220,0.26)]">
           <div className="flex items-center gap-3">

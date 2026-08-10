@@ -106,13 +106,14 @@ export function ProductDetails({ product }: ProductDetailsProps) {
   };
 
   const reelButtonRef = useRef<HTMLButtonElement | null>(null);
+  const productImageFrameRef = useRef<HTMLDivElement | null>(null);
   const [anchorRect, setAnchorRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
 
   return (
     <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] animate-fade-in-up">
 
       {/* ── Image column ── */}
-      <div className="relative">
+      <div className="relative" ref={productImageFrameRef}>
         {/* Ambient halo behind the image card — offer only */}
         {isOffer && (
           <div
@@ -170,8 +171,8 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                     ref={reelButtonRef}
                     type="button"
                     onClick={() => {
-                      if (reelButtonRef.current) {
-                        const r = reelButtonRef.current.getBoundingClientRect();
+                      if (productImageFrameRef.current) {
+                        const r = productImageFrameRef.current.getBoundingClientRect();
                         setAnchorRect({ left: r.left, top: r.top, width: r.width, height: r.height });
                       }
                       setShowReel(true);
