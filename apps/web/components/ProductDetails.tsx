@@ -108,26 +108,6 @@ export function ProductDetails({ product }: ProductDetailsProps) {
   const reelButtonRef = useRef<HTMLButtonElement | null>(null);
   const [anchorRect, setAnchorRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
 
-  const reelButton = product.hasReel && product.reelUrl ? (
-    <button
-      ref={reelButtonRef}
-      type="button"
-      onClick={() => {
-        if (reelButtonRef.current) {
-          const r = reelButtonRef.current.getBoundingClientRect();
-          setAnchorRect({ left: r.left, top: r.top, width: r.width, height: r.height });
-        }
-        setShowReel(true);
-      }}
-      className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-softPink to-lavender px-2.5 py-1 text-[11px] font-black text-textPrimary border border-white/60 shadow-sm hover:scale-105 transition-transform"
-    >
-      <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M5 3v18l15-9L5 3z" fill="currentColor" />
-      </svg>
-      <span className="hidden sm:inline">Ver video</span>
-    </button>
-  ) : null;
-
   return (
     <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] animate-fade-in-up">
 
@@ -187,8 +167,15 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                 <OfferBadge product={product} size="md" />
                 {product.hasReel && product.reelUrl && (
                   <button
+                    ref={reelButtonRef}
                     type="button"
-                    onClick={() => setShowReel(true)}
+                    onClick={() => {
+                      if (reelButtonRef.current) {
+                        const r = reelButtonRef.current.getBoundingClientRect();
+                        setAnchorRect({ left: r.left, top: r.top, width: r.width, height: r.height });
+                      }
+                      setShowReel(true);
+                    }}
                     aria-label={`Ver video de ${product.name}`}
                     className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-softPink to-lavender px-3 py-1 text-sm font-black text-textPrimary border border-white/60 shadow-sm hover:scale-105 transition-transform"
                   >
