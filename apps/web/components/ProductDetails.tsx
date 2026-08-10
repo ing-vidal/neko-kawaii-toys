@@ -105,10 +105,20 @@ export function ProductDetails({ product }: ProductDetailsProps) {
     mouseY.set(-1000);
   };
 
+  const reelButtonRef = useRef<HTMLButtonElement | null>(null);
+  const [anchorRect, setAnchorRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
+
   const reelButton = product.hasReel && product.reelUrl ? (
     <button
+      ref={reelButtonRef}
       type="button"
-      onClick={() => setShowReel(true)}
+      onClick={() => {
+        if (reelButtonRef.current) {
+          const r = reelButtonRef.current.getBoundingClientRect();
+          setAnchorRect({ left: r.left, top: r.top, width: r.width, height: r.height });
+        }
+        setShowReel(true);
+      }}
       className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-softPink to-lavender px-2.5 py-1 text-[11px] font-black text-textPrimary border border-white/60 shadow-sm hover:scale-105 transition-transform"
     >
       <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -232,7 +242,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
           <div className="mt-6 space-y-5 text-[#5D4E6D]/85 leading-7 font-medium">
             <p>{product.description}</p>
             <div className="grid gap-3 sm:grid-cols-2">
-              <PriceDisplay product={product} variant="detail" reelButton={reelButton} />
+              <PriceDisplay product={product} variant="detail" />
               <div className="rounded-3xl bg-gradient-to-tr from-softPink/5 to-sky/5 border border-softPink/15 p-5">
                 {outOfStock ? (
                   // Out-of-stock: show "Estado / Agotado" in red
@@ -286,7 +296,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
               >
                 Agregar al carrito
               </Button>
-              <ReelModal isOpen={Boolean(showReel)} onClose={() => setShowReel(false)} reelUrl={product.reelUrl} title={product.name} thumbnail={product.image} />
+              <ReelModal isOpen={Boolean(showReel)} onClose={() => setShowReel(false)} reelUrl={product.reelUrl} title={product.name} thumbnail={product.image} anchorRect={anchorRect} />
             </div>
           )}
         </div>
