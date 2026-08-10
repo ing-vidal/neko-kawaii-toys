@@ -166,10 +166,10 @@ export function ProductDetails({ product }: ProductDetailsProps) {
               ))}
             </AnimatePresence>
 
-            {/* Offer badge — top-left of image. Add Reel button below it */}
-            {isOffer && mounted && (
+            {/* Offer badge + Reel button — top-left of image. The reel button must remain visible regardless of offer state */}
+            {mounted && (
               <div className="absolute top-6 left-6 z-20 flex flex-col items-start gap-3">
-                <OfferBadge product={product} size="md" />
+                {isOffer && <OfferBadge product={product} size="md" />}
                 {product.hasReel && product.reelUrl && (
                   <button
                     type="button"
