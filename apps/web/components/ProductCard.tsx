@@ -98,6 +98,16 @@ export function ProductCard({ product }: ProductCardProps) {
     mouseY.set(-1000);
   };
 
+  const openReelInNewTab = () => {
+    if (!product.reelUrl) return;
+
+    try {
+      window.open(product.reelUrl, '_blank', 'noopener,noreferrer');
+    } catch {
+      window.location.href = product.reelUrl;
+    }
+  };
+
   // Card Framer Motion variants — offer cards elevate more and glow more on hover
   const cardVariants = {
     initial: {
@@ -219,7 +229,19 @@ export function ProductCard({ product }: ProductCardProps) {
           </motion.div>
         </Link>
 
-        {/* Video button removed from catalog card; available on product detail page only */}
+        {product.hasReel && product.reelUrl && (
+          <button
+            type="button"
+            onClick={openReelInNewTab}
+            aria-label={`Ver video de ${product.name}`}
+            className="absolute top-2 right-2 z-30 inline-flex items-center gap-1 rounded-full border border-white/60 bg-white/80 px-2.5 py-1 text-[10px] font-black text-textPrimary shadow-sm backdrop-blur-md transition hover:scale-105 hover:bg-softPink/20 focus:outline-none focus:ring-2 focus:ring-softPink/60"
+          >
+            <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 3v18l15-9L5 3z" fill="currentColor" />
+            </svg>
+            <span className="leading-none">Video</span>
+          </button>
+        )}
       </div>
 
       {/* Product info */}
