@@ -87,8 +87,7 @@ export function PriceDisplay({ product, variant, reelButton }: PriceDisplayProps
           <span className="inline-flex items-center rounded-full bg-gradient-to-r from-softPink to-lavender px-2.5 py-1 text-[11px] font-black text-textPrimary border border-white/60 shadow-sm">
             🏷️ -{pct}%
           </span>
-          {/** Render optional reel button next to badge */}
-          {reelButton}
+          {/** Optional reel button (moved to image area in ProductDetails) */}
         </div>
       </div>
       {/* Precio normal tachado */}

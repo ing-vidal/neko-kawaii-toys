@@ -171,10 +171,23 @@ export function ProductDetails({ product }: ProductDetailsProps) {
               ))}
             </AnimatePresence>
 
-            {/* Offer badge — top-left of image */}
+            {/* Offer badge — top-left of image. Add Reel button below it */}
             {isOffer && mounted && (
-              <div className="absolute top-6 left-6 z-20">
+              <div className="absolute top-6 left-6 z-20 flex flex-col items-start gap-3">
                 <OfferBadge product={product} size="md" />
+                {product.hasReel && product.reelUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setShowReel(true)}
+                    aria-label={`Ver video de ${product.name}`}
+                    className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-softPink to-lavender px-3 py-1 text-sm font-black text-textPrimary border border-white/60 shadow-sm hover:scale-105 transition-transform"
+                  >
+                    <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M5 3v18l15-9L5 3z" fill="currentColor" />
+                    </svg>
+                    <span>Ver video</span>
+                  </button>
+                )}
               </div>
             )}
 
