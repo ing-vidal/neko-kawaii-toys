@@ -91,7 +91,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
       clearTimeout(initial);
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isOffer, isMotionEnabled]);
+  }, [isOffer, isMotionEnabled, outOfStock]);
 
   const handleMouseMoveImage = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isOffer || !supportsHover || !isMotionEnabled || outOfStock) return;

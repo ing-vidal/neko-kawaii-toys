@@ -24,7 +24,7 @@ interface PriceDisplayProps {
  * - glow rosa sutil permanente
  * Respeta prefers-reduced-motion mediante la clase CSS.
  */
-export function PriceDisplay({ product, variant, reelButton }: PriceDisplayProps) {
+export function PriceDisplay({ product, variant, reelButton: _reelButton }: PriceDisplayProps) {
   const isOffer = hasValidOffer(product);
   const shouldReduceMotion = useReducedMotion();
 
