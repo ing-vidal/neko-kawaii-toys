@@ -105,6 +105,19 @@ export function ProductDetails({ product }: ProductDetailsProps) {
     mouseY.set(-1000);
   };
 
+  const reelButton = product.hasReel && product.reelUrl ? (
+    <button
+      type="button"
+      onClick={() => setShowReel(true)}
+      className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-softPink to-lavender px-2.5 py-1 text-[11px] font-black text-textPrimary border border-white/60 shadow-sm hover:scale-105 transition-transform"
+    >
+      <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 3v18l15-9L5 3z" fill="currentColor" />
+      </svg>
+      <span className="hidden sm:inline">Ver video</span>
+    </button>
+  ) : null;
+
   return (
     <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] animate-fade-in-up">
 
@@ -206,7 +219,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
           <div className="mt-6 space-y-5 text-[#5D4E6D]/85 leading-7 font-medium">
             <p>{product.description}</p>
             <div className="grid gap-3 sm:grid-cols-2">
-              <PriceDisplay product={product} variant="detail" />
+              <PriceDisplay product={product} variant="detail" reelButton={reelButton} />
               <div className="rounded-3xl bg-gradient-to-tr from-softPink/5 to-sky/5 border border-softPink/15 p-5">
                 {outOfStock ? (
                   // Out-of-stock: show "Estado / Agotado" in red
@@ -253,11 +266,6 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             </>
           ) : (
             <div className="flex flex-col sm:flex-row gap-3">
-              {product.hasReel && product.reelUrl && (
-                <Button type="button" variant="secondary" onClick={() => setShowReel(true)} className="w-full sm:w-auto">
-                  Ver video
-                </Button>
-              )}
               <Button
                 type="button"
                 onClick={() => addProduct(product)}

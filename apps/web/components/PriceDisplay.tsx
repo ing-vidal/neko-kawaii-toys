@@ -2,6 +2,7 @@
 
 import { useReducedMotion } from 'framer-motion';
 import type { Product } from '@product-types/product';
+import React from 'react';
 import { hasValidOffer, getDiscountPercent, getSavings } from '@lib/offers';
 
 type PriceFields = Pick<Product, 'price' | 'hasOffer' | 'offerPrice'>;
@@ -13,6 +14,7 @@ interface PriceDisplayProps {
    * detail — completo, para ProductDetails (incluye "Ahorras $XX")
    */
   variant: 'card' | 'detail';
+  reelButton?: React.ReactNode;
 }
 
 /**
@@ -22,7 +24,7 @@ interface PriceDisplayProps {
  * - glow rosa sutil permanente
  * Respeta prefers-reduced-motion mediante la clase CSS.
  */
-export function PriceDisplay({ product, variant }: PriceDisplayProps) {
+export function PriceDisplay({ product, variant, reelButton }: PriceDisplayProps) {
   const isOffer = hasValidOffer(product);
   const shouldReduceMotion = useReducedMotion();
 
@@ -81,9 +83,13 @@ export function PriceDisplay({ product, variant }: PriceDisplayProps) {
       {/* Encabezado con badge */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <p className="text-xs uppercase tracking-[0.2em] text-[#8C84A2] font-bold">Precio</p>
-        <span className="inline-flex items-center rounded-full bg-gradient-to-r from-softPink to-lavender px-2.5 py-1 text-[11px] font-black text-textPrimary border border-white/60 shadow-sm">
-          🏷️ -{pct}%
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center rounded-full bg-gradient-to-r from-softPink to-lavender px-2.5 py-1 text-[11px] font-black text-textPrimary border border-white/60 shadow-sm">
+            🏷️ -{pct}%
+          </span>
+          {/** Render optional reel button next to badge */}
+          {reelButton}
+        </div>
       </div>
       {/* Precio normal tachado */}
       <p className="text-base font-semibold text-[#8C84A2] line-through">${product.price}</p>
