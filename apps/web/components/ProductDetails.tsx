@@ -19,7 +19,6 @@ import { OutOfStockOverlay } from './OutOfStockOverlay';
 import { StockBadge } from './StockBadge';
 import { hasValidOffer } from '@lib/offers';
 import { isOutOfStock } from '@lib/stock';
-import { ReelModal } from './ReelModal';
 
 interface ProductDetailsProps {
   product: Product;
@@ -40,7 +39,6 @@ export function ProductDetails({ product }: ProductDetailsProps) {
   const { addProduct } = useCart();
   const [petals, setPetals] = useState<Petal[]>([]);
   const [mounted, setMounted] = useState(false);
-  const [showReel, setShowReel] = useState(false);
   const [supportsHover, setSupportsHover] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const shouldReduceMotion = useReducedMotion();
@@ -105,15 +103,21 @@ export function ProductDetails({ product }: ProductDetailsProps) {
     mouseY.set(-1000);
   };
 
-  const reelButtonRef = useRef<HTMLButtonElement | null>(null);
-  const productImageFrameRef = useRef<HTMLDivElement | null>(null);
-  const [anchorRect, setAnchorRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
+  const openReelInNewTab = () => {
+    if (!product.reelUrl) return;
+
+    try {
+      window.open(product.reelUrl, '_blank', 'noopener,noreferrer');
+    } catch {
+      window.location.href = product.reelUrl;
+    }
+  };
 
   return (
     <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] animate-fade-in-up">
 
       {/* ── Image column ── */}
-      <div className="relative" ref={productImageFrameRef}>
+      <div className="relative">
         {/* Ambient halo behind the image card — offer only */}
         {isOffer && (
           <div
@@ -168,15 +172,8 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                 <OfferBadge product={product} size="md" />
                 {product.hasReel && product.reelUrl && (
                   <button
-                    ref={reelButtonRef}
                     type="button"
-                    onClick={() => {
-                      if (productImageFrameRef.current) {
-                        const r = productImageFrameRef.current.getBoundingClientRect();
-                        setAnchorRect({ left: r.left, top: r.top, width: r.width, height: r.height });
-                      }
-                      setShowReel(true);
-                    }}
+                    onClick={openReelInNewTab}
                     aria-label={`Ver video de ${product.name}`}
                     className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-softPink to-lavender px-3 py-1 text-sm font-black text-textPrimary border border-white/60 shadow-sm hover:scale-105 transition-transform"
                   >
@@ -284,7 +281,6 @@ export function ProductDetails({ product }: ProductDetailsProps) {
               >
                 Agregar al carrito
               </Button>
-              <ReelModal isOpen={Boolean(showReel)} onClose={() => setShowReel(false)} reelUrl={product.reelUrl} title={product.name} thumbnail={product.image} anchorRect={anchorRect} />
             </div>
           )}
         </div>
