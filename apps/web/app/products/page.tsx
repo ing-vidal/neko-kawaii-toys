@@ -1,9 +1,6 @@
 import { ProductBrowser } from '@components/ProductBrowser';
-import { getProducts } from '@lib/utils';
 
 export default function ProductsPage() {
-  const products = getProducts();
-
   return (
     <div className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-8">
       <div className="mb-10 space-y-3">
@@ -13,7 +10,7 @@ export default function ProductsPage() {
           Descubre figuras, peluches y accesorios seleccionados para crear un estilo único y adorable.
         </p>
       </div>
-      <ProductBrowser products={products} />
+      <ProductBrowser />
     </div>
   );
 }

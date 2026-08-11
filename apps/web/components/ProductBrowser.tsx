@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { Button } from './Button';
 import { ProductGrid } from './ProductGrid';
 import { SearchBar } from './SearchBar';
@@ -12,13 +12,41 @@ import { getEffectivePrice } from '@lib/offers';
 const defaultCategories = ['Todos', 'Figuras', 'Peluches', 'Anime', 'Accesorios', 'Coleccionables'] as const;
 
 interface ProductBrowserProps {
-  products: Product[];
+  products?: Product[];
 }
 
-export function ProductBrowser({ products }: ProductBrowserProps) {
+interface CatalogApiResponse {
+  products: Product[];
+  total: number;
+  page: number;
+  totalPages: number;
+  limit: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export function ProductBrowser({ products = [] }: ProductBrowserProps) {
+  const [isMobile, setIsMobile] = useState(false);
+  const PAGE_SIZE = isMobile ? 12 : 24;
   const [query, setQuery] = useState('');
+  const deferredQuery = useDeferredValue(query);
   const [category, setCategory] = useState<string>('Todos');
+  const [showFilters, setShowFilters] = useState(false);
+  const [page, setPage] = useState(1);
+  const [catalog, setCatalog] = useState<CatalogApiResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
   const { products: mergedProducts, categories: adminCategories } = useLocalCatalog(products);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const media = window.matchMedia('(max-width: 640px)');
+    const apply = () => setIsMobile(media.matches);
+    apply();
+    media.addEventListener('change', apply);
+    return () => media.removeEventListener('change', apply);
+  }, []);
 
   const categories = useMemo(
     () => Array.from(new Set(['Todos', ...defaultCategories.slice(1), ...adminCategories])) as string[],
@@ -112,34 +140,66 @@ export function ProductBrowser({ products }: ProductBrowserProps) {
   const minPercent = ((currentMinPrice - absoluteMinPrice) / (absoluteMaxPrice - absoluteMinPrice || 1)) * 100;
   const maxPercent = ((currentMaxPrice - absoluteMinPrice) / (absoluteMaxPrice - absoluteMinPrice || 1)) * 100;
 
-  // Filter and sort products (all price operations use effective price)
-  const filteredAndSortedProducts = useMemo(() => {
-    let result = mergedProducts.filter((product) => {
-      const matchesCategory = category === 'Todos' || product.category === category;
-      const matchesQuery = product.name.toLowerCase().includes(query.toLowerCase());
-      const effectivePrice = getEffectivePrice(product);
-      const matchesPrice = effectivePrice >= currentMinPrice && effectivePrice <= currentMaxPrice;
-      return matchesCategory && matchesQuery && matchesPrice;
-    });
+  const currentPageProducts = catalog?.products ?? [];
+  const totalResults = catalog?.total ?? 0;
+  const pageCount = Math.max(1, catalog?.totalPages ?? 1);
 
-    result = [...result].sort((a, b) => {
-      if (sortBy === 'name-asc') {
-        return a.name.localeCompare(b.name);
-      }
-      if (sortBy === 'name-desc') {
-        return b.name.localeCompare(a.name);
-      }
-      if (sortBy === 'price-asc') {
-        return getEffectivePrice(a) - getEffectivePrice(b);
-      }
-      if (sortBy === 'price-desc') {
-        return getEffectivePrice(b) - getEffectivePrice(a);
-      }
-      return 0;
-    });
+  useEffect(() => {
+    setPage(1);
+  }, [deferredQuery, category, currentMinPrice, currentMaxPrice, sortBy]);
 
-    return result;
-  }, [category, mergedProducts, query, currentMinPrice, currentMaxPrice, sortBy]);
+  useEffect(() => {
+    if (page > pageCount) setPage(1);
+  }, [page, pageCount]);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set('page', String(page));
+    params.set('limit', String(PAGE_SIZE));
+    params.set('sortBy', sortBy);
+
+    if (deferredQuery.trim()) {
+      params.set('search', deferredQuery.trim());
+    }
+    if (category && category !== 'Todos') {
+      params.set('category', category);
+    }
+    if (minPriceState !== null) {
+      params.set('minPrice', String(currentMinPrice));
+    }
+    if (maxPriceState !== null) {
+      params.set('maxPrice', String(currentMaxPrice));
+    }
+
+    const controller = new AbortController();
+
+    const fetchCatalog = async () => {
+      try {
+        setLoading(true);
+        setLoadError(null);
+        const response = await fetch(`/api/products?${params.toString()}`, {
+          signal: controller.signal,
+          cache: 'no-store',
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const json = (await response.json()) as CatalogApiResponse;
+        setCatalog(json);
+      } catch (error) {
+        if ((error as Error).name === 'AbortError') return;
+        setLoadError('No se pudieron cargar los productos');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCatalog();
+
+    return () => controller.abort();
+  }, [category, currentMaxPrice, currentMinPrice, deferredQuery, maxPriceState, minPriceState, page, PAGE_SIZE, sortBy]);
 
   return (
     <section className="space-y-8">
@@ -160,8 +220,22 @@ export function ProductBrowser({ products }: ProductBrowserProps) {
 
       {/* Buscador y Carrusel de Ancho Completo */}
       <div className="flex flex-col gap-4">
-        <SearchBar value={query} onChange={setQuery} />
-        <ProductCarousel products={mergedProducts} />
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <SearchBar value={query} onChange={setQuery} />
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            className="sm:hidden px-4 py-2 text-xs font-black"
+            onClick={() => setShowFilters((value) => !value)}
+          >
+            {showFilters ? 'Ocultar' : 'Filtrar'}
+          </Button>
+        </div>
+        <div className="hidden sm:block">
+          <ProductCarousel products={mergedProducts} />
+        </div>
       </div>
 
       <div className="rounded-[36px] sm:rounded-[40px] border border-softPink/20 bg-white/70 backdrop-blur-sm p-6 sm:p-8 shadow-soft">
@@ -169,103 +243,155 @@ export function ProductBrowser({ products }: ProductBrowserProps) {
           <div>
             <h2 className="text-2xl font-black text-textPrimary">Resultados</h2>
             <p className="mt-2 text-sm text-[#5D4E6D]/80 font-medium">
-              🌸 {filteredAndSortedProducts.length} productos encontrados{' '}
-              {query ? `para «${query}»` : 'en el catálogo'}.
+              🌸 {totalResults} productos encontrados{' '}
+              {deferredQuery ? `para «${deferredQuery}»` : 'en el catálogo'}.
             </p>
           </div>
 
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-end lg:items-center">
-            {/* Rango de Precios */}
-            <div className="flex flex-col gap-2 min-w-[280px]">
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-[#8C84A2] uppercase tracking-wider">Precio</span>
-                {(minPriceState !== null || maxPriceState !== null) && (
-                  <button
-                    onClick={() => {
-                      setMinPriceState(null);
-                      setMaxPriceState(null);
-                    }}
-                    className="text-xs font-bold text-softPink hover:text-lavender transition-colors duration-200"
-                  >
-                    Limpiar rango
-                  </button>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="relative flex items-center">
-                  <span className="absolute left-2.5 text-xs text-slate-400 font-medium">$</span>
-                  <input
-                    type="number"
-                    value={minInput}
-                    onChange={handleMinInputChange}
-                    onBlur={handleMinInputBlur}
-                    className="w-16 rounded-xl border border-softPink/20 bg-white/90 py-1.5 pl-5 pr-1.5 text-center text-xs font-semibold text-textPrimary focus:border-softPink focus:outline-none focus:ring-1 focus:ring-softPink/40"
-                  />
-                </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end lg:items-center">
+            <Button
+              type="button"
+              variant="secondary"
+              className="sm:hidden px-4 py-2 text-xs font-black"
+              onClick={() => setShowFilters((value) => !value)}
+            >
+              {showFilters ? 'Cerrar filtros' : 'Abrir filtros'}
+            </Button>
+          </div>
+        </div>
 
-                {/* Slider bar */}
-                <div className="relative flex-1 px-1 py-4">
-                  <div className="dual-range-slider relative w-full">
-                    {/* Track background */}
-                    <div className="absolute top-1/2 left-0 h-1.5 w-full -translate-y-1/2 rounded bg-softPink/10" />
-                    {/* Highlighted track */}
-                    <div
-                      className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded bg-gradient-to-r from-softPink to-lavender"
-                      style={{
-                        left: `${minPercent}%`,
-                        right: `${100 - maxPercent}%`,
+        <div className={showFilters ? 'block sm:block' : 'hidden sm:block'}>
+          <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between border-b border-softPink/10 pb-6">
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-end lg:items-center">
+              {/* Rango de Precios */}
+              <div className="flex flex-col gap-2 min-w-[280px]">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-[#8C84A2] uppercase tracking-wider">Precio</span>
+                  {(minPriceState !== null || maxPriceState !== null) && (
+                    <button
+                      onClick={() => {
+                        setMinPriceState(null);
+                        setMaxPriceState(null);
                       }}
-                    />
-                    {/* Intersecting native range inputs */}
+                      className="text-xs font-bold text-softPink hover:text-lavender transition-colors duration-200"
+                    >
+                      Limpiar rango
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="relative flex items-center">
+                    <span className="absolute left-2.5 text-xs text-slate-400 font-medium">$</span>
                     <input
-                      type="range"
-                      min={absoluteMinPrice}
-                      max={absoluteMaxPrice}
-                      value={currentMinPrice}
-                      onChange={handleMinSliderChange}
-                      className="absolute w-full"
+                      type="number"
+                      value={minInput}
+                      onChange={handleMinInputChange}
+                      onBlur={handleMinInputBlur}
+                      className="w-16 rounded-xl border border-softPink/20 bg-white/90 py-1.5 pl-5 pr-1.5 text-center text-xs font-semibold text-textPrimary focus:border-softPink focus:outline-none focus:ring-1 focus:ring-softPink/40"
                     />
+                  </div>
+
+                  {/* Slider bar */}
+                  <div className="relative flex-1 px-1 py-4">
+                    <div className="dual-range-slider relative w-full">
+                      {/* Track background */}
+                      <div className="absolute top-1/2 left-0 h-1.5 w-full -translate-y-1/2 rounded bg-softPink/10" />
+                      {/* Highlighted track */}
+                      <div
+                        className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded bg-gradient-to-r from-softPink to-lavender"
+                        style={{
+                          left: `${minPercent}%`,
+                          right: `${100 - maxPercent}%`,
+                        }}
+                      />
+                      {/* Intersecting native range inputs */}
+                      <input
+                        type="range"
+                        min={absoluteMinPrice}
+                        max={absoluteMaxPrice}
+                        value={currentMinPrice}
+                        onChange={handleMinSliderChange}
+                        className="absolute w-full"
+                      />
+                      <input
+                        type="range"
+                        min={absoluteMinPrice}
+                        max={absoluteMaxPrice}
+                        value={currentMaxPrice}
+                        onChange={handleMaxSliderChange}
+                        className="absolute w-full"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="relative flex items-center">
+                    <span className="absolute left-2.5 text-xs text-slate-400 font-medium">$</span>
                     <input
-                      type="range"
-                      min={absoluteMinPrice}
-                      max={absoluteMaxPrice}
-                      value={currentMaxPrice}
-                      onChange={handleMaxSliderChange}
-                      className="absolute w-full"
+                      type="number"
+                      value={maxInput}
+                      onChange={handleMaxInputChange}
+                      onBlur={handleMaxInputBlur}
+                      className="w-16 rounded-xl border border-softPink/20 bg-white/90 py-1.5 pl-5 pr-1.5 text-center text-xs font-semibold text-textPrimary focus:border-softPink focus:outline-none focus:ring-1 focus:ring-softPink/40"
                     />
                   </div>
                 </div>
-
-                <div className="relative flex items-center">
-                  <span className="absolute left-2.5 text-xs text-slate-400 font-medium">$</span>
-                  <input
-                    type="number"
-                    value={maxInput}
-                    onChange={handleMaxInputChange}
-                    onBlur={handleMaxInputBlur}
-                    className="w-16 rounded-xl border border-softPink/20 bg-white/90 py-1.5 pl-5 pr-1.5 text-center text-xs font-semibold text-textPrimary focus:border-softPink focus:outline-none focus:ring-1 focus:ring-softPink/40"
-                  />
-                </div>
               </div>
-            </div>
 
-            {/* Ordenación */}
-            <div className="flex flex-col gap-2 min-w-[180px]">
-              <span className="text-xs font-bold text-[#8C84A2] uppercase tracking-wider">Ordenar por</span>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full rounded-xl border border-softPink/20 bg-white/90 px-3 py-2 text-sm text-textPrimary outline-none focus:border-softPink focus:ring-1 focus:ring-softPink/40 transition duration-200"
-              >
-                <option value="name-asc">Nombre: A-Z</option>
-                <option value="name-desc">Nombre: Z-A</option>
-                <option value="price-asc">Precio: Min-Max</option>
-                <option value="price-desc">Precio: Max-Min</option>
-              </select>
+              {/* Ordenación */}
+              <div className="flex flex-col gap-2 min-w-[180px]">
+                <span className="text-xs font-bold text-[#8C84A2] uppercase tracking-wider">Ordenar por</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full rounded-xl border border-softPink/20 bg-white/90 px-3 py-2 text-sm text-textPrimary outline-none focus:border-softPink focus:ring-1 focus:ring-softPink/40 transition duration-200"
+                >
+                  <option value="name-asc">Nombre: A-Z</option>
+                  <option value="name-desc">Nombre: Z-A</option>
+                  <option value="price-asc">Precio: Min-Max</option>
+                  <option value="price-desc">Precio: Max-Min</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
-        <ProductGrid products={filteredAndSortedProducts} />
+
+        {loading && (
+          <div className="mt-5 text-sm font-bold text-[#8C84A2]">Cargando productos...</div>
+        )}
+
+        {loadError && (
+          <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">
+            {loadError}
+          </div>
+        )}
+
+        <ProductGrid products={currentPageProducts} />
+
+        {pageCount > 1 && (
+          <div className="mt-8 flex items-center justify-center gap-3">
+            <Button
+              type="button"
+              variant="secondary"
+              className="px-4 py-2 text-xs font-black"
+              disabled={page === 1 || loading}
+              onClick={() => setPage((value) => Math.max(1, value - 1))}
+            >
+              Anterior
+            </Button>
+            <span className="rounded-full border border-softPink/30 bg-white/80 px-4 py-2 text-xs font-black text-textPrimary">
+              Página {page} / {pageCount}
+            </span>
+            <Button
+              type="button"
+              variant="secondary"
+              className="px-4 py-2 text-xs font-black"
+              disabled={page >= pageCount || loading}
+              onClick={() => setPage((value) => Math.min(pageCount, value + 1))}
+            >
+              Siguiente
+            </Button>
+          </div>
+        )}
       </div>
     </section>
   );
