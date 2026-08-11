@@ -2,12 +2,27 @@ import { NextResponse } from 'next/server';
 import { getProducts } from '@lib/utils';
 import { getEffectivePrice } from '@lib/offers';
 import type { Product } from '@product-types/product';
+import { readAdminProducts, readDeletedProducts } from '../admin/utils';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
 
-    const products = getProducts();
+    const staticProducts = getProducts();
+    const adminProducts = await readAdminProducts();
+    const deletedProductIds = await readDeletedProducts();
+
+    const catalogMap = new Map<string, Product>();
+    staticProducts.forEach((product) => catalogMap.set(product.id, product));
+    adminProducts.forEach((product) => {
+      if (!deletedProductIds.includes(product.id)) {
+        catalogMap.set(product.id, product);
+      }
+    });
+
+    const products = Array.from(catalogMap.values()).filter((product) => {
+      return !deletedProductIds.includes(product.id);
+    });
 
     const page = Math.max(1, Number(searchParams.get('page') ?? 1));
     const limit = Math.min(80, Math.max(1, Number(searchParams.get('limit') ?? 24)));
