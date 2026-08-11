@@ -6,13 +6,8 @@ import { ProductGrid } from './ProductGrid';
 import { SearchBar } from './SearchBar';
 import { ProductCarousel } from './ProductCarousel';
 import type { Product } from '@product-types/product';
-import { getEffectivePrice } from '@lib/offers';
 
 const defaultCategories = ['Todos', 'Figuras', 'Peluches', 'Anime', 'Accesorios', 'Coleccionables'] as const;
-
-interface ProductBrowserProps {
-  products?: Product[];
-}
 
 interface CatalogApiResponse {
   products: Product[];
@@ -29,7 +24,7 @@ interface CatalogApiResponse {
   hasPreviousPage: boolean;
 }
 
-export function ProductBrowser({ products = [] }: ProductBrowserProps) {
+export function ProductBrowser() {
   const [isMobile, setIsMobile] = useState(false);
   const PAGE_SIZE = isMobile ? 12 : 24;
   const [query, setQuery] = useState('');
