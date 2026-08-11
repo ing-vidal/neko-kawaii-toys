@@ -199,19 +199,37 @@ export function ProductBrowser() {
 
   return (
     <section className="space-y-8">
-      {/* Filtro de Categorías Horizontal */}
-      <div className="flex flex-nowrap overflow-x-auto gap-2 pb-2 -mx-5 px-5 sm:mx-0 sm:px-0 sm:flex-wrap items-center">
-        {categories.map((categoryItem) => (
-          <Button
-            key={categoryItem}
-            type="button"
-            variant={categoryItem === category ? 'primary' : 'secondary'}
-            className="whitespace-nowrap px-4 py-2.5 text-xs sm:px-5 sm:py-2.5 sm:text-sm font-medium"
-            onClick={() => setCategory(categoryItem)}
-          >
-            {categoryItem}
-          </Button>
-        ))}
+      {/* Filtro de Categorías */}
+      <div className="hidden sm:block">
+        <div className="flex flex-wrap gap-2 items-center">
+          {categories.map((categoryItem) => (
+            <Button
+              key={categoryItem}
+              type="button"
+              variant={categoryItem === category ? 'primary' : 'secondary'}
+              className="whitespace-nowrap px-4 py-2.5 text-xs sm:px-5 sm:py-2.5 sm:text-sm font-medium"
+              onClick={() => setCategory(categoryItem)}
+            >
+              {categoryItem}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      <div className="sm:hidden">
+        <div className="grid grid-cols-2 gap-2">
+          {categories.map((categoryItem) => (
+            <Button
+              key={categoryItem}
+              type="button"
+              variant={categoryItem === category ? 'primary' : 'secondary'}
+              className="w-full px-3 py-2.5 text-xs font-black"
+              onClick={() => setCategory(categoryItem)}
+            >
+              {categoryItem}
+            </Button>
+          ))}
+        </div>
       </div>
 
       {/* Buscador y Carrusel de Ancho Completo */}
