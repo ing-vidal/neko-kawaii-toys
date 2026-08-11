@@ -6,7 +6,6 @@ import { ProductGrid } from './ProductGrid';
 import { SearchBar } from './SearchBar';
 import { ProductCarousel } from './ProductCarousel';
 import type { Product } from '@product-types/product';
-import { useLocalCatalog } from '@hooks/useLocalCatalog';
 import { getEffectivePrice } from '@lib/offers';
 
 const defaultCategories = ['Todos', 'Figuras', 'Peluches', 'Anime', 'Accesorios', 'Coleccionables'] as const;
@@ -17,6 +16,11 @@ interface ProductBrowserProps {
 
 interface CatalogApiResponse {
   products: Product[];
+  categories: string[];
+  priceRange: {
+    min: number;
+    max: number;
+  };
   total: number;
   page: number;
   totalPages: number;
@@ -37,8 +41,6 @@ export function ProductBrowser({ products = [] }: ProductBrowserProps) {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const { products: mergedProducts, categories: adminCategories } = useLocalCatalog(products);
-
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const media = window.matchMedia('(max-width: 640px)');
@@ -49,19 +51,18 @@ export function ProductBrowser({ products = [] }: ProductBrowserProps) {
   }, []);
 
   const categories = useMemo(
-    () => Array.from(new Set(['Todos', ...defaultCategories.slice(1), ...adminCategories])) as string[],
-    [adminCategories]
+    () => Array.from(new Set(['Todos', ...defaultCategories.slice(1), ...(catalog?.categories ?? [])])) as string[],
+    [catalog]
   );
 
   // Dynamic absolute min and max prices (based on effective price)
   const { absoluteMinPrice, absoluteMaxPrice } = useMemo(() => {
-    if (mergedProducts.length === 0) return { absoluteMinPrice: 0, absoluteMaxPrice: 100 };
-    const prices = mergedProducts.map((p) => getEffectivePrice(p));
+    if (!catalog?.priceRange) return { absoluteMinPrice: 0, absoluteMaxPrice: 100 };
     return {
-      absoluteMinPrice: Math.floor(Math.min(...prices)),
-      absoluteMaxPrice: Math.ceil(Math.max(...prices)),
+      absoluteMinPrice: catalog.priceRange.min,
+      absoluteMaxPrice: catalog.priceRange.max,
     };
-  }, [mergedProducts]);
+  }, [catalog]);
 
   // Price range filters state (null means using defaults)
   const [minPriceState, setMinPriceState] = useState<number | null>(null);
@@ -234,7 +235,7 @@ export function ProductBrowser({ products = [] }: ProductBrowserProps) {
           </Button>
         </div>
         <div className="hidden sm:block">
-          <ProductCarousel products={mergedProducts} />
+          <ProductCarousel products={currentPageProducts} />
         </div>
       </div>
 

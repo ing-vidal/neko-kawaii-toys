@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { getProducts } from '@lib/utils';
+import { getCategories, getProducts } from '@lib/utils';
 import { getEffectivePrice } from '@lib/offers';
 import type { Product } from '@product-types/product';
-import { readAdminProducts, readDeletedProducts } from '../admin/utils';
+import { readAdminCategories, readAdminProducts, readDeletedProducts } from '../admin/utils';
 
 export async function GET(request: Request) {
   try {
@@ -10,6 +10,7 @@ export async function GET(request: Request) {
 
     const staticProducts = getProducts();
     const adminProducts = await readAdminProducts();
+    const adminCategories = await readAdminCategories();
     const deletedProductIds = await readDeletedProducts();
 
     const catalogMap = new Map<string, Product>();
@@ -23,6 +24,8 @@ export async function GET(request: Request) {
     const products = Array.from(catalogMap.values()).filter((product) => {
       return !deletedProductIds.includes(product.id);
     });
+
+    const categories = Array.from(new Set([...getCategories(), ...adminCategories, ...products.map((product) => product.category)]));
 
     const page = Math.max(1, Number(searchParams.get('page') ?? 1));
     const limit = Math.min(80, Math.max(1, Number(searchParams.get('limit') ?? 24)));
@@ -64,8 +67,16 @@ export async function GET(request: Request) {
     const safePage = Math.min(page, totalPages);
     const start = (safePage - 1) * limit;
 
+    const prices = products.map((product) => getEffectivePrice(product));
+    const priceRange = {
+      min: prices.length ? Math.floor(Math.min(...prices)) : 0,
+      max: prices.length ? Math.ceil(Math.max(...prices)) : 100,
+    };
+
     return NextResponse.json({
       products: filtered.slice(start, start + limit),
+      categories,
+      priceRange,
       total,
       page: safePage,
       totalPages,
