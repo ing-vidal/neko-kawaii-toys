@@ -131,7 +131,7 @@ export function CartSummary() {
               Vaciar carrito
             </Button>
             <Button type="button" onClick={handleRequestOrder} disabled={!isOrderEnabled} className="w-full sm:w-auto">
-              Solicitar pedido
+              Solicitar información
             </Button>
           </div>
         </div>
