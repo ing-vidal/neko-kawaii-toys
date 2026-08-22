@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@components/Button';
 
@@ -20,29 +20,13 @@ interface FormErrors {
   message?: string;
 }
 
-const contactCards = [
-  {
-    emoji: '✉️',
-    title: 'Correo electrónico',
-    content: 'nekokawaiitoys@gmail.com',
-    note: 'Lunes a viernes · 9:00 – 18:00',
-    href: 'mailto:nekokawaiitoys@gmail.com',
-  },
-  {
-    emoji: '📸',
-    title: 'Instagram',
-    content: '@nekokawaiitoys',
-    note: '¡Publicamos novedades y sorpresas todos los días!',
-    href: 'https://www.instagram.com/nekokawaiitoys/',
-  },
-  {
-    emoji: '👥',
-    title: 'Facebook',
-    content: 'Neko Kawaii Toys',
-    note: 'Síguenos para conocer nuestros sorteos exclusivos.',
-    href: 'https://www.facebook.com/profile.php?id=61592058311480',
-  },
-];
+interface ContactConfig {
+  whatsappNumber: string;
+  emailIconUrl: string;
+  instagramIconUrl: string;
+  facebookIconUrl: string;
+  whatsappIconUrl: string;
+}
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -78,10 +62,137 @@ const inputClass = (hasError: boolean) =>
      : 'border-softPink/30 focus:border-softPink focus:ring-softPink/20'
    }`;
 
+/* ── Default Brand Icons ── */
+function EmailIcon({ className = 'h-7 w-7' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="48" height="48" rx="12" fill="#F0F4FF"/>
+      <path d="M10 16a2 2 0 012-2h24a2 2 0 012 2v16a2 2 0 01-2 2H12a2 2 0 01-2-2V16z" fill="#4F6CF7" opacity="0.15"/>
+      <path d="M10 16l14 10 14-10" stroke="#4F6CF7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <rect x="10" y="14" width="28" height="20" rx="2" stroke="#4F6CF7" strokeWidth="2"/>
+    </svg>
+  );
+}
+
+function InstagramIcon({ className = 'h-7 w-7' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="ig-contact-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#f9a825"/>
+          <stop offset="40%" stopColor="#e91e8c"/>
+          <stop offset="100%" stopColor="#8b29cf"/>
+        </linearGradient>
+      </defs>
+      <rect width="48" height="48" rx="12" fill="url(#ig-contact-grad)"/>
+      <rect x="13" y="13" width="22" height="22" rx="6" stroke="white" strokeWidth="2.2" fill="none"/>
+      <circle cx="24" cy="24" r="5.5" stroke="white" strokeWidth="2.2" fill="none"/>
+      <circle cx="31" cy="17" r="1.5" fill="white"/>
+    </svg>
+  );
+}
+
+function FacebookIcon({ className = 'h-7 w-7' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} xmlns="http://www.w3.org/2000/svg">
+      <rect width="48" height="48" rx="12" fill="#1877F2"/>
+      <path d="M28 14h-3a5 5 0 00-5 5v3h-3v4h3v10h4V26h3l1-4h-4v-3a1 1 0 011-1h3v-4z" fill="white"/>
+    </svg>
+  );
+}
+
+function WhatsAppIcon({ className = 'h-7 w-7' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} xmlns="http://www.w3.org/2000/svg">
+      <rect width="48" height="48" rx="12" fill="#25D366"/>
+      <path d="M24 12.5C17.6 12.5 12.5 17.6 12.5 24c0 2.12.58 4.1 1.6 5.8L12.5 35.5l5.83-1.57A11.47 11.47 0 0024 35.5c6.4 0 11.5-5.1 11.5-11.5S30.4 12.5 24 12.5z" stroke="white" strokeWidth="1.5" fill="none"/>
+      <path d="M20.5 18.5c-.4-.9-1-.9-1.5-.9-.4 0-.8 0-1.2.4-.4.4-1.5 1.5-1.5 3.6s1.5 4.2 1.7 4.5c.2.3 2.9 4.6 7.2 6.2 3.6 1.4 4.3 1.1 5.1 1 .8-.1 2.5-1 2.9-2s.4-1.8.3-2c-.1-.2-.5-.3-.9-.5s-2.5-1.2-2.9-1.4c-.4-.1-.7-.2-1 .2-.3.4-1.2 1.4-1.5 1.7-.3.3-.5.3-.9.1s-1.7-.6-3.3-2c-1.2-1.1-2-2.5-2.3-2.9-.3-.4 0-.6.2-.8.2-.2.5-.5.7-.7.2-.3.3-.5.4-.8.1-.3 0-.6-.1-.8z" fill="white"/>
+    </svg>
+  );
+}
+
+function ContactIcon({
+  customUrl,
+  DefaultIcon,
+  alt,
+}: {
+  customUrl: string;
+  DefaultIcon: React.ComponentType<{ className?: string }>;
+  alt: string;
+}) {
+  if (customUrl) {
+    return <img src={customUrl} alt={alt} className="h-8 w-8 object-contain rounded-lg" />;
+  }
+  return <DefaultIcon className="h-8 w-8" />;
+}
+
 export default function ContactPage() {
   const [form, setForm] = useState<FormData>({ name: '', email: '', subject: '', message: '' });
   const [errors, setErrors] = useState<FormErrors>({});
   const [formState, setFormState] = useState<FormState>('idle');
+  const [config, setConfig] = useState<ContactConfig>({
+    whatsappNumber: '',
+    emailIconUrl: '',
+    instagramIconUrl: '',
+    facebookIconUrl: '',
+    whatsappIconUrl: '',
+  });
+
+  useEffect(() => {
+    fetch('/api/admin/config', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((data: Partial<ContactConfig>) => {
+        setConfig({
+          whatsappNumber: data.whatsappNumber || '',
+          emailIconUrl: data.emailIconUrl || '',
+          instagramIconUrl: data.instagramIconUrl || '',
+          facebookIconUrl: data.facebookIconUrl || '',
+          whatsappIconUrl: data.whatsappIconUrl || '',
+        });
+      })
+      .catch(() => {});
+  }, []);
+
+  const contactCards = [
+    {
+      key: 'email',
+      title: 'Correo electrónico',
+      content: 'nekokawaiitoys@gmail.com',
+      note: 'Lunes a viernes · 9:00 – 18:00',
+      href: 'mailto:nekokawaiitoys@gmail.com',
+      customIconUrl: config.emailIconUrl,
+      DefaultIcon: EmailIcon,
+    },
+    {
+      key: 'instagram',
+      title: 'Instagram',
+      content: '@nekokawaiitoys',
+      note: '¡Publicamos novedades y sorpresas todos los días!',
+      href: 'https://www.instagram.com/nekokawaiitoys/',
+      customIconUrl: config.instagramIconUrl,
+      DefaultIcon: InstagramIcon,
+    },
+    {
+      key: 'facebook',
+      title: 'Facebook',
+      content: 'Neko Kawaii Toys',
+      note: 'Síguenos para conocer nuestros sorteos exclusivos.',
+      href: 'https://www.facebook.com/profile.php?id=61592058311480',
+      customIconUrl: config.facebookIconUrl,
+      DefaultIcon: FacebookIcon,
+    },
+    {
+      key: 'whatsapp',
+      title: 'WhatsApp',
+      content: config.whatsappNumber ? `+${config.whatsappNumber}` : 'WhatsApp',
+      note: 'Escríbenos directamente, ¡respondemos rápido!',
+      href: config.whatsappNumber
+        ? `https://wa.me/${config.whatsappNumber}`
+        : '#',
+      customIconUrl: config.whatsappIconUrl,
+      DefaultIcon: WhatsAppIcon,
+    },
+  ];
 
   const handleChange = (field: keyof FormData) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -119,10 +230,10 @@ export default function ContactPage() {
       </div>
 
       {/* Contact cards */}
-      <div className="grid gap-5 sm:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {contactCards.map((card, i) => (
           <motion.a
-            key={card.title}
+            key={card.key}
             href={card.href}
             target={card.href.startsWith('http') ? '_blank' : undefined}
             rel={card.href.startsWith('http') ? 'noopener noreferrer' : undefined}
@@ -133,8 +244,12 @@ export default function ContactPage() {
             variants={cardVariants}
             className="rounded-[32px] border border-softPink/20 bg-white/70 backdrop-blur-sm p-7 shadow-soft flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:bg-white group"
           >
-            <span className="inline-flex h-12 w-12 items-center justify-center rounded-[16px] bg-gradient-to-tr from-softPink/15 to-sky/20 border border-softPink/20 text-2xl">
-              {card.emoji}
+            <span className="inline-flex h-12 w-12 items-center justify-center rounded-[16px] bg-white border border-softPink/20 shadow-sm">
+              <ContactIcon
+                customUrl={card.customIconUrl}
+                DefaultIcon={card.DefaultIcon}
+                alt={card.title}
+              />
             </span>
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#8C84A2]">{card.title}</p>

@@ -94,12 +94,20 @@ export interface AdminConfigData {
   whatsappNumber: string;
   logoUrl: string;
   bannerUrl: string;
+  emailIconUrl: string;
+  instagramIconUrl: string;
+  facebookIconUrl: string;
+  whatsappIconUrl: string;
 }
 
 export const defaultAdminConfig: AdminConfigData = {
   whatsappNumber: '',
   logoUrl: '',
   bannerUrl: '',
+  emailIconUrl: '',
+  instagramIconUrl: '',
+  facebookIconUrl: '',
+  whatsappIconUrl: '',
 };
 
 export async function readAdminConfig(): Promise<AdminConfigData> {
