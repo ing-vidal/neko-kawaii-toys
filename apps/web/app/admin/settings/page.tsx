@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useAdminConfig } from '@hooks/useAdminConfig';
 import { useAdminAccess } from '@hooks/useAdminAccess';
 import { useToast } from '@hooks/useToast';
-import { compressImage } from '@lib/image';
+import { uploadImageFile } from '@lib/image';
 
 export default function SettingsPage() {
   const { addToast } = useToast();
@@ -20,6 +20,8 @@ export default function SettingsPage() {
   const [categoryName, setCategoryName] = useState('');
   const [logoPreview, setLogoPreview] = useState('');
   const [bannerPreview, setBannerPreview] = useState('');
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [whatsappInput, setWhatsappInput] = useState(whatsappNumber);
   const [categories, setCategories] = useState<string[]>([]);
@@ -46,24 +48,34 @@ export default function SettingsPage() {
   }, []);
 
   const handleLogoUpload = async (file: File) => {
+    setUploadingLogo(true);
     try {
-      const compressed = await compressImage(file, 400, 400, 0.85);
-      await setLogoUrl(compressed);
-      setLogoPreview(compressed);
+      const url = await uploadImageFile(file, { maxWidth: 600, maxHeight: 600, quality: 0.9, preservePng: true });
+      await setLogoUrl(url);
+      setLogoPreview(url);
       addToast('Logo actualizado.', 'success');
-    } catch {
-      addToast('Error al comprimir el logo.', 'error');
+    } catch (err: unknown) {
+      console.error(err);
+      const msg = err instanceof Error ? err.message : 'Error al subir el logo.';
+      addToast(msg, 'error');
+    } finally {
+      setUploadingLogo(false);
     }
   };
 
   const handleBannerUpload = async (file: File) => {
+    setUploadingBanner(true);
     try {
-      const compressed = await compressImage(file, 1200, 400, 0.8);
-      await setBannerUrl(compressed);
-      setBannerPreview(compressed);
+      const url = await uploadImageFile(file, { maxWidth: 1600, maxHeight: 600, quality: 0.85 });
+      await setBannerUrl(url);
+      setBannerPreview(url);
       addToast('Banner actualizado.', 'success');
-    } catch {
-      addToast('Error al comprimir el banner.', 'error');
+    } catch (err: unknown) {
+      console.error(err);
+      const msg = err instanceof Error ? err.message : 'Error al subir el banner.';
+      addToast(msg, 'error');
+    } finally {
+      setUploadingBanner(false);
     }
   };
 
@@ -160,9 +172,17 @@ export default function SettingsPage() {
         </Section>
 
         {/* Logo */}
-        <Section title="Logo del sitio" description="Recomendado: 400×400 px. Se comprime automáticamente.">
-          <label className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 p-5 cursor-pointer hover:border-lavender/60 hover:bg-slate-50 transition">
-            {logoPreview ? (
+        <Section title="Logo del sitio" description="Recomendado: 400×400 px. Se sube directamente a la nube.">
+          <label className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 p-5 transition ${uploadingLogo ? 'opacity-60 cursor-wait bg-slate-50' : 'cursor-pointer hover:border-lavender/60 hover:bg-slate-50'}`}>
+            {uploadingLogo ? (
+              <div className="flex flex-col items-center gap-2 py-4">
+                <svg className="h-6 w-6 animate-spin text-lavender" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                <span className="text-xs text-slate-500">Subiendo logo…</span>
+              </div>
+            ) : logoPreview ? (
               <img src={logoPreview} alt="Logo preview" className="h-20 w-20 rounded-xl object-cover" />
             ) : (
               <>
@@ -172,15 +192,23 @@ export default function SettingsPage() {
                 <span className="text-sm text-slate-400">Subir logo</span>
               </>
             )}
-            <input type="file" accept="image/*" className="sr-only"
+            <input type="file" accept="image/*" disabled={uploadingLogo} className="sr-only"
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f); }} />
           </label>
         </Section>
 
         {/* Banner */}
-        <Section title="Banner de la página" description="Recomendado: 1200×400 px. Se comprime automáticamente.">
-          <label className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 p-5 cursor-pointer hover:border-lavender/60 hover:bg-slate-50 transition">
-            {bannerPreview ? (
+        <Section title="Banner de la página" description="Recomendado: 1200×400 px. Se sube directamente a la nube.">
+          <label className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 p-5 transition ${uploadingBanner ? 'opacity-60 cursor-wait bg-slate-50' : 'cursor-pointer hover:border-lavender/60 hover:bg-slate-50'}`}>
+            {uploadingBanner ? (
+              <div className="flex flex-col items-center gap-2 py-6">
+                <svg className="h-6 w-6 animate-spin text-lavender" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                <span className="text-xs text-slate-500">Subiendo banner…</span>
+              </div>
+            ) : bannerPreview ? (
               <img src={bannerPreview} alt="Banner preview" className="h-28 w-full rounded-xl object-cover" />
             ) : (
               <>
@@ -190,7 +218,7 @@ export default function SettingsPage() {
                 <span className="text-sm text-slate-400">Subir banner</span>
               </>
             )}
-            <input type="file" accept="image/*" className="sr-only"
+            <input type="file" accept="image/*" disabled={uploadingBanner} className="sr-only"
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleBannerUpload(f); }} />
           </label>
         </Section>
@@ -218,13 +246,14 @@ export default function SettingsPage() {
                   const f = e.target.files?.[0];
                   if (!f) return;
                   try {
-                    const { compressImage } = await import('@lib/image');
-                    const compressed = await compressImage(f, 128, 128, 0.9);
-                    await setter(compressed);
-                    setPreview(compressed);
+                    const url = await uploadImageFile(f, { maxWidth: 256, maxHeight: 256, quality: 0.9, preservePng: true });
+                    await setter(url);
+                    setPreview(url);
                     addToast(`Icono de ${label} actualizado.`, 'success');
-                  } catch {
-                    addToast(`Error al subir el icono de ${label}.`, 'error');
+                  } catch (err: unknown) {
+                    console.error(err);
+                    const msg = err instanceof Error ? err.message : `Error al subir el icono de ${label}.`;
+                    addToast(msg, 'error');
                   }
                 }} />
             </label>

@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@hooks/useToast';
-import { compressImage } from '@lib/image';
+import { uploadImageFile } from '@lib/image';
 import type { Product } from '@product-types/product';
 
 interface ProductFormProps {
@@ -39,6 +39,7 @@ export function ProductForm({ initialProduct, categories, mode }: ProductFormPro
   const [status, setStatus] = useState<'active' | 'inactive'>(initialProduct?.status ?? 'active');
   const [image, setImage] = useState(initialProduct?.image ?? '');
   const [imagePreview, setImagePreview] = useState(initialProduct?.image ?? '');
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [rating, setRating] = useState(String(initialProduct?.rating ?? '4.5'));
   const [reviews, setReviews] = useState(String(initialProduct?.reviews ?? '0'));
   const [hasOffer, setHasOffer] = useState(initialProduct?.hasOffer ?? false);
@@ -76,12 +77,18 @@ export function ProductForm({ initialProduct, categories, mode }: ProductFormPro
   };
 
   const handleImageUpload = async (file: File) => {
+    setUploadingImage(true);
     try {
-      const compressed = await compressImage(file, 800, 800, 0.8);
-      setImage(compressed);
-      setImagePreview(compressed);
-    } catch {
-      addToast('Error al comprimir la imagen.', 'error');
+      const url = await uploadImageFile(file, { maxWidth: 1000, maxHeight: 1000, quality: 0.85 });
+      setImage(url);
+      setImagePreview(url);
+      addToast('Imagen subida correctamente.', 'success');
+    } catch (err: unknown) {
+      console.error(err);
+      const msg = err instanceof Error ? err.message : 'Error al subir la imagen.';
+      addToast(msg, 'error');
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -332,8 +339,16 @@ export function ProductForm({ initialProduct, categories, mode }: ProductFormPro
           {/* Image upload */}
           <div>
             <label className={LABEL_CLASS}>Imagen del producto</label>
-            <label className="mt-1.5 flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 p-6 cursor-pointer hover:border-lavender/60 hover:bg-slate-50 transition">
-              {imagePreview ? (
+            <label className={`mt-1.5 flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 p-6 transition ${uploadingImage ? 'opacity-60 cursor-wait bg-slate-50' : 'cursor-pointer hover:border-lavender/60 hover:bg-slate-50'}`}>
+              {uploadingImage ? (
+                <div className="flex flex-col items-center gap-2 py-6">
+                  <svg className="h-8 w-8 animate-spin text-lavender" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <span className="text-xs font-semibold text-slate-500">Subiendo imagen a la nube…</span>
+                </div>
+              ) : imagePreview ? (
                 <img
                   src={imagePreview}
                   alt="Vista previa"
@@ -350,6 +365,7 @@ export function ProductForm({ initialProduct, categories, mode }: ProductFormPro
               <input
                 type="file"
                 accept="image/*"
+                disabled={uploadingImage}
                 className="sr-only"
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }}
               />
