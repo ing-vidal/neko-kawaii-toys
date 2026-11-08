@@ -44,7 +44,7 @@ export const CAMPAIGN_THEMES = [
     emoji: '👑',
     headline: 'Celebra el Día de Reyes',
     message: 'Descubre una sorpresa especial para empezar el año.',
-    logoSrc: null,
+    logoSrc: '/images/reyes-magos.png',
     accent: '#a16207',
     border: '#f59e0b',
     surface: '#fffbeb',
