@@ -12,15 +12,20 @@ export async function POST(request: Request) {
     const cleanFilename = rawFilename.replace(/[^a-zA-Z0-9._-]/g, '_');
     const filename = `${Date.now()}-${cleanFilename}`;
 
-    const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+    // Look for standard or store-prefixed Blob tokens
+    const blobToken =
+      process.env.BLOB_READ_WRITE_TOKEN ||
+      process.env.NEKO_KAWAII_TOYS_BLOB_READ_WRITE_TOKEN ||
+      process.env.VERCEL_BLOB_READ_WRITE_TOKEN ||
+      Object.entries(process.env).find(([k]) => k.includes('BLOB') && k.includes('TOKEN'))?.[1];
 
-    // If running in Vercel or BLOB_READ_WRITE_TOKEN is configured, use Vercel Blob
+    // If running in Vercel or a blob token exists, use Vercel Blob
     if (blobToken || process.env.VERCEL) {
       if (!blobToken) {
         return NextResponse.json(
           {
             error:
-              'No se encontró la variable de entorno BLOB_READ_WRITE_TOKEN. Por favor, crea un Vercel Blob Store en el panel de Vercel.',
+              'No se encontró la variable de entorno BLOB_READ_WRITE_TOKEN en el proyecto. Asegúrate de que el Blob Store esté conectado (linked) a tu proyecto en Vercel Settings -> Environment Variables.',
           },
           { status: 500 }
         );
@@ -28,12 +33,13 @@ export async function POST(request: Request) {
 
       const blob = await put(`neko-kawaii/${filename}`, request.body!, {
         access: 'public',
+        token: blobToken,
       });
 
       return NextResponse.json({ url: blob.url });
     }
 
-    // Local development fallback when BLOB_READ_WRITE_TOKEN is not set
+    // Local development fallback when running locally without Vercel Blob
     const buffer = Buffer.from(await request.arrayBuffer());
     
     // Determine public/uploads directory

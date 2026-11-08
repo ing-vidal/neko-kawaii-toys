@@ -6,6 +6,7 @@ import { ProductGrid } from './ProductGrid';
 import { SearchBar } from './SearchBar';
 import { ProductCarousel } from './ProductCarousel';
 import type { Product } from '@product-types/product';
+import { CAMPAIGN_THEMES, type CampaignId } from '@lib/campaigns';
 
 const defaultCategories = ['Todos', 'Figuras', 'Peluches', 'Anime', 'Accesorios', 'Coleccionables'] as const;
 
@@ -35,6 +36,29 @@ export function ProductBrowser() {
   const [catalog, setCatalog] = useState<CatalogApiResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [campaignId, setCampaignId] = useState<CampaignId | null>(null);
+  const activeCampaign = CAMPAIGN_THEMES.find((theme) => theme.id === campaignId);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/campaign', { cache: 'no-store' })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return (await response.json()) as { campaignId: string | null };
+      })
+      .then((result) => {
+        if (!active) return;
+        const theme = CAMPAIGN_THEMES.find((item) => item.id === result.campaignId);
+        setCampaignId(theme?.id ?? null);
+      })
+      .catch((error: unknown) => {
+        console.error('Error loading active catalog campaign:', error);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -199,6 +223,32 @@ export function ProductBrowser() {
 
   return (
     <section className="space-y-8">
+      {activeCampaign && (
+        <div
+          className="overflow-hidden rounded-[28px] border px-5 py-5 shadow-sm sm:px-8 sm:py-6"
+          style={{
+            background: `linear-gradient(120deg, ${activeCampaign.surface}, #ffffff)`,
+            borderColor: activeCampaign.border,
+          }}
+        >
+          <div className="flex items-center gap-4">
+            <span
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-2xl shadow-sm"
+              style={{ backgroundColor: activeCampaign.tagBackground, color: activeCampaign.tagColor }}
+              aria-hidden="true"
+            >
+              {activeCampaign.emoji}
+            </span>
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: activeCampaign.accent }}>
+                Edición de temporada
+              </p>
+              <h2 className="mt-1 text-xl font-black text-textPrimary sm:text-2xl">{activeCampaign.headline}</h2>
+              <p className="mt-1 text-sm font-medium text-[#5D4E6D]/80">{activeCampaign.message}</p>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Filtro de Categorías */}
       <div className="hidden sm:block">
         <div className="flex flex-wrap gap-2 items-center">
@@ -379,7 +429,7 @@ export function ProductBrowser() {
           </div>
         )}
 
-        <ProductGrid products={currentPageProducts} />
+        <ProductGrid products={currentPageProducts} campaignId={campaignId} />
 
         {pageCount > 1 && (
           <div className="mt-8 flex items-center justify-center gap-3">
@@ -410,4 +460,3 @@ export function ProductBrowser() {
     </section>
   );
 }
-

@@ -1,5 +1,32 @@
 {
   "whatsappNumber": "5213323780237",
   "logoUrl": "",
-  "bannerUrl": ""
+  "bannerUrl": "",
+  "campaigns": {
+    "black-friday": {
+      "enabled": false,
+      "startDate": "2026-11-27",
+      "endDate": "2026-11-29"
+    },
+    "buen-fin": {
+      "enabled": false,
+      "startDate": "2026-11-13",
+      "endDate": "2026-11-17"
+    },
+    "navidad": {
+      "enabled": false,
+      "startDate": "2026-12-01",
+      "endDate": "2026-12-25"
+    },
+    "reyes": {
+      "enabled": false,
+      "startDate": "2026-01-01",
+      "endDate": "2026-01-06"
+    },
+    "dia-del-nino": {
+      "enabled": false,
+      "startDate": "2026-04-20",
+      "endDate": "2026-04-30"
+    }
+  }
 }

@@ -33,6 +33,15 @@ const NAV = [
       </svg>
     ),
   },
+  {
+    href: '/admin/campaigns',
+    label: 'Temporadas',
+    icon: (
+      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v2m6.364.636l-1.414 1.414M21 12h-2m-1.636 6.364l-1.414-1.414M12 19v2m-6.364-2.636l1.414-1.414M5 12H3m2.636-6.364l1.414 1.414M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+    ),
+  },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {

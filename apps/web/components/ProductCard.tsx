@@ -20,10 +20,12 @@ import { OutOfStockOverlay } from './OutOfStockOverlay';
 import { StockBadge } from './StockBadge';
 import { hasValidOffer } from '@lib/offers';
 import { isOutOfStock } from '@lib/stock';
+import { CAMPAIGN_THEMES, type CampaignId } from '@lib/campaigns';
 // Reel modal handled on product detail page only
 
 interface ProductCardProps {
   product: Product;
+  campaignId?: CampaignId | null;
 }
 
 interface Petal {
@@ -37,7 +39,7 @@ interface Petal {
   scale: number;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, campaignId = null }: ProductCardProps) {
   const { addProduct } = useCart();
   const [petals, setPetals] = useState<Petal[]>([]);
   const [supportsHover, setSupportsHover] = useState(false);
@@ -52,6 +54,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const isOffer = hasValidOffer(product);
   const outOfStock = isOutOfStock(product.stock);
   const isMotionEnabled = mounted && !shouldReduceMotion;
+  const campaign = CAMPAIGN_THEMES.find((theme) => theme.id === campaignId);
 
   useEffect(() => {
     setMounted(true);
@@ -113,19 +116,23 @@ export function ProductCard({ product }: ProductCardProps) {
     initial: {
       opacity: 0,
       y: 20,
-      boxShadow: '0 12px 32px rgba(248, 200, 220, 0.18)',
+      boxShadow: campaign ? `0 12px 32px ${campaign.accent}20` : '0 12px 32px rgba(248, 200, 220, 0.18)',
     },
     animate: {
       opacity: 1,
       y: 0,
-      boxShadow: '0 12px 32px rgba(248, 200, 220, 0.18)',
+      boxShadow: campaign ? `0 12px 32px ${campaign.accent}20` : '0 12px 32px rgba(248, 200, 220, 0.18)',
       transition: { duration: 0.45, ease: 'easeOut' as const },
     },
     hover: {
       y: isOffer ? -8 : -5,
       scale: isOffer ? 1.025 : 1.02,
       boxShadow: isOffer
-        ? '0 28px 52px rgba(248, 200, 220, 0.50), 0 6px 20px rgba(216, 200, 255, 0.25)'
+        ? campaign
+          ? `0 28px 52px ${campaign.accent}45, 0 6px 20px ${campaign.border}30`
+          : '0 28px 52px rgba(248, 200, 220, 0.50), 0 6px 20px rgba(216, 200, 255, 0.25)'
+        : campaign
+          ? `0 20px 40px ${campaign.accent}30`
         : '0 20px 40px rgba(248, 200, 220, 0.35)',
       transition: { duration: 0.35, ease: 'easeOut' as const },
     },
@@ -136,8 +143,16 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   const reducedVariants = {
-    initial: { opacity: 1, y: 0, boxShadow: '0 12px 32px rgba(248, 200, 220, 0.18)' },
-    animate: { opacity: 1, y: 0, boxShadow: '0 12px 32px rgba(248, 200, 220, 0.18)' },
+    initial: {
+      opacity: 1,
+      y: 0,
+      boxShadow: campaign ? `0 12px 32px ${campaign.accent}20` : '0 12px 32px rgba(248, 200, 220, 0.18)',
+    },
+    animate: {
+      opacity: 1,
+      y: 0,
+      boxShadow: campaign ? `0 12px 32px ${campaign.accent}20` : '0 12px 32px rgba(248, 200, 220, 0.18)',
+    },
     hover: {},
     tap: {},
   };
@@ -158,6 +173,7 @@ export function ProductCard({ product }: ProductCardProps) {
       className={`relative rounded-[31px] bg-white/70 backdrop-blur-sm p-5 shadow-soft ${
         isOffer ? '' : 'border border-softPink/20 rounded-[32px]'
       }`}
+      style={campaign ? { backgroundColor: campaign.surface, borderColor: campaign.border } : undefined}
     >
       {/* Cursor spotlight — desktop + offer only. useMotionTemplate avoids re-renders */}
       {isOffer && supportsHover && isMotionEnabled && (
@@ -227,6 +243,14 @@ export function ProductCard({ product }: ProductCardProps) {
               />
             </motion.div>
           </motion.div>
+          {campaign && (
+            <span
+              className="absolute bottom-2 left-2 rounded-full px-2.5 py-1 text-[10px] font-black shadow-sm"
+              style={{ backgroundColor: campaign.tagBackground, color: campaign.tagColor }}
+            >
+              {campaign.emoji} {campaign.name}
+            </span>
+          )}
         </Link>
 
         {product.hasReel && product.reelUrl && (
@@ -247,7 +271,7 @@ export function ProductCard({ product }: ProductCardProps) {
       {/* Product info */}
       <div className="mt-5 space-y-3 relative z-[2]">
         <div className="flex items-center justify-between gap-2 text-[10px] sm:text-xs uppercase tracking-[0.18em] text-[#8C84A2] font-semibold">
-          <span className="text-lavender-700">🌸 {product.category}</span>
+          <span style={campaign ? { color: campaign.accent } : undefined}>🌸 {product.category}</span>
           <span>{product.reviews}+ reseñas</span>
         </div>
         <Link
@@ -301,7 +325,10 @@ export function ProductCard({ product }: ProductCardProps) {
         />
         {/* Gradient border wrapper: 1.5px padding + animated gradient bg.
             Card's own bg-white/70 covers the interior — only the 1.5px strip shows. */}
-        <div className="p-[1.5px] rounded-[32px] offer-border-gradient">
+        <div
+          className="p-[1.5px] rounded-[32px] offer-border-gradient"
+          style={campaign ? { backgroundImage: `linear-gradient(135deg, ${campaign.accent}, ${campaign.border})` } : undefined}
+        >
           {article}
         </div>
       </div>

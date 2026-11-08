@@ -2,6 +2,7 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
 import type { Product } from '@product-types/product';
+import { createDefaultCampaignSettings, type CampaignSettings } from '@lib/campaigns';
 
 let dataDirectory = '';
 try {
@@ -98,6 +99,7 @@ export interface AdminConfigData {
   instagramIconUrl: string;
   facebookIconUrl: string;
   whatsappIconUrl: string;
+  campaigns: CampaignSettings;
 }
 
 export const defaultAdminConfig: AdminConfigData = {
@@ -108,12 +110,17 @@ export const defaultAdminConfig: AdminConfigData = {
   instagramIconUrl: '',
   facebookIconUrl: '',
   whatsappIconUrl: '',
+  campaigns: createDefaultCampaignSettings(),
 };
 
 export async function readAdminConfig(): Promise<AdminConfigData> {
-  const config = await readJson<AdminConfigData>('admin-config.json', defaultAdminConfig);
+  const config = await readJson<Partial<AdminConfigData>>('admin-config.json', defaultAdminConfig);
   let needsWriteBack = false;
-  const cleanedConfig = { ...config };
+  const cleanedConfig: AdminConfigData = {
+    ...defaultAdminConfig,
+    ...config,
+    campaigns: config.campaigns ?? defaultAdminConfig.campaigns,
+  };
 
   if (config.logoUrl && config.logoUrl.startsWith('data:') && config.logoUrl.length > 300000) {
     needsWriteBack = true;
