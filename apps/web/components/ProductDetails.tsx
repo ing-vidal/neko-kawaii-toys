@@ -19,6 +19,8 @@ import { OutOfStockOverlay } from './OutOfStockOverlay';
 import { StockBadge } from './StockBadge';
 import { hasValidOffer } from '@lib/offers';
 import { isOutOfStock } from '@lib/stock';
+import { CAMPAIGN_THEMES, type CampaignId } from '@lib/campaigns';
+import Image from 'next/image';
 
 interface ProductDetailsProps {
   product: Product;
@@ -40,8 +42,10 @@ export function ProductDetails({ product }: ProductDetailsProps) {
   const [petals, setPetals] = useState<Petal[]>([]);
   const [mounted, setMounted] = useState(false);
   const [supportsHover, setSupportsHover] = useState(false);
+  const [campaignId, setCampaignId] = useState<CampaignId | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const shouldReduceMotion = useReducedMotion();
+  const campaign = CAMPAIGN_THEMES.find((theme) => theme.id === campaignId);
 
   // Cursor spotlight for the image container
   const mouseX = useMotionValue(-1000);
@@ -59,6 +63,27 @@ export function ProductDetails({ product }: ProductDetailsProps) {
     const handler = (e: MediaQueryListEvent) => setSupportsHover(e.matches);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/campaign', { cache: 'no-store' })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return (await response.json()) as { campaignId: string | null };
+      })
+      .then((result) => {
+        if (!active) return;
+        const theme = CAMPAIGN_THEMES.find((item) => item.id === result.campaignId);
+        setCampaignId(theme?.id ?? null);
+      })
+      .catch((error: unknown) => {
+        console.error('Error loading active product campaign:', error);
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Occasional sakura petals around the image — offer only, low frequency, not when out of stock
@@ -127,9 +152,15 @@ export function ProductDetails({ product }: ProductDetailsProps) {
         )}
 
         {/* Gradient border wrapper — same technique as ProductCard */}
-        <div className={isOffer ? 'p-[1.5px] rounded-[36px] offer-border-gradient' : ''}>
+        <div
+          className={isOffer || campaign ? 'p-[1.5px] rounded-[36px] offer-border-gradient' : ''}
+          style={campaign ? {
+            backgroundImage: `linear-gradient(135deg, ${campaign.accent}, ${campaign.border})`,
+          } : undefined}
+        >
           <div
             className="rounded-[32px] sm:rounded-[35px] border border-softPink/20 bg-white/70 backdrop-blur-sm p-6 shadow-soft relative overflow-hidden"
+            style={campaign ? { borderColor: campaign.border, backgroundColor: campaign.surface } : undefined}
             onMouseMove={handleMouseMoveImage}
             onMouseLeave={handleMouseLeaveImage}
           >
@@ -186,7 +217,12 @@ export function ProductDetails({ product }: ProductDetailsProps) {
               </div>
             )}
 
-            <div className="overflow-hidden rounded-[26px] bg-gradient-to-tr from-softPink/10 via-surface/40 to-sky/25 p-6 sm:p-8 relative z-[2]">
+            <div
+              className="overflow-hidden rounded-[26px] bg-gradient-to-tr from-softPink/10 via-surface/40 to-sky/25 p-6 sm:p-8 relative z-[2]"
+              style={campaign ? {
+                backgroundImage: `linear-gradient(135deg, ${campaign.surface}, #ffffff 60%, ${campaign.border}30)`,
+              } : undefined}
+            >
               {/* Floating image — offer only, not when out of stock */}
               <div className={isOffer && isMotionEnabled && !outOfStock ? 'offer-float' : ''}>
                 <ImageOrFallback
@@ -211,7 +247,31 @@ export function ProductDetails({ product }: ProductDetailsProps) {
 
       {/* ── Info column ── */}
       <div className="space-y-6">
-        <div className="rounded-[32px] sm:rounded-[36px] border border-softPink/20 bg-white/70 backdrop-blur-sm p-8 shadow-soft">
+        <div
+          className="rounded-[32px] sm:rounded-[36px] border border-softPink/20 bg-white/70 backdrop-blur-sm p-8 shadow-soft"
+          style={campaign ? { borderColor: campaign.border, backgroundColor: `${campaign.surface}e8` } : undefined}
+        >
+          {campaign && (
+            <div
+              className="mb-5 flex items-center gap-3 rounded-2xl border px-3 py-2"
+              style={{ backgroundColor: campaign.surface, borderColor: campaign.border, color: campaign.accent }}
+            >
+              {campaign.logoSrc ? (
+                <Image
+                  src={campaign.logoSrc}
+                  alt={`Logotipo de ${campaign.name}`}
+                  width={258}
+                  height={270}
+                  className="h-12 w-12 rounded-lg bg-white object-contain"
+                />
+              ) : (
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl text-xl" style={{ backgroundColor: campaign.tagBackground, color: campaign.tagColor }}>
+                  {campaign.emoji}
+                </span>
+              )}
+              <span className="text-sm font-extrabold">Edición de temporada: {campaign.name}</span>
+            </div>
+          )}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs sm:text-sm font-extrabold uppercase tracking-[0.25em] bg-gradient-to-r from-softPink via-[#5D4E6D] to-lavender bg-clip-text text-transparent">

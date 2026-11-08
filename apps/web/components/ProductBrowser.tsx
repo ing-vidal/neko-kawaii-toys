@@ -7,6 +7,7 @@ import { SearchBar } from './SearchBar';
 import { ProductCarousel } from './ProductCarousel';
 import type { Product } from '@product-types/product';
 import { CAMPAIGN_THEMES, type CampaignId } from '@lib/campaigns';
+import Image from 'next/image';
 
 const defaultCategories = ['Todos', 'Figuras', 'Peluches', 'Anime', 'Accesorios', 'Coleccionables'] as const;
 
@@ -227,24 +228,41 @@ export function ProductBrowser() {
         <div
           className="overflow-hidden rounded-[28px] border px-5 py-5 shadow-sm sm:px-8 sm:py-6"
           style={{
-            background: `linear-gradient(120deg, ${activeCampaign.surface}, #ffffff)`,
+            background: activeCampaign.logoSrc
+              ? 'linear-gradient(120deg, #fff1f2, #ffffff)'
+              : `linear-gradient(120deg, ${activeCampaign.surface}, #ffffff)`,
             borderColor: activeCampaign.border,
           }}
         >
           <div className="flex items-center gap-4">
             <span
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-2xl shadow-sm"
-              style={{ backgroundColor: activeCampaign.tagBackground, color: activeCampaign.tagColor }}
-              aria-hidden="true"
+              className={`flex shrink-0 items-center justify-center overflow-hidden rounded-2xl shadow-sm ${
+                activeCampaign.logoSrc ? 'h-16 w-16 bg-white' : 'h-12 w-12 text-2xl'
+              }`}
+              style={activeCampaign.logoSrc
+                ? { border: `1px solid ${activeCampaign.border}` }
+                : { backgroundColor: activeCampaign.tagBackground, color: activeCampaign.tagColor }}
             >
-              {activeCampaign.emoji}
+              {activeCampaign.logoSrc ? (
+                <Image
+                  src={activeCampaign.logoSrc}
+                  alt={`Logotipo de ${activeCampaign.name}`}
+                  width={258}
+                  height={270}
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <span aria-hidden="true">{activeCampaign.emoji}</span>
+              )}
             </span>
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: activeCampaign.accent }}>
                 Edición de temporada
               </p>
               <h2 className="mt-1 text-xl font-black text-textPrimary sm:text-2xl">{activeCampaign.headline}</h2>
-              <p className="mt-1 text-sm font-medium text-[#5D4E6D]/80">{activeCampaign.message}</p>
+              {activeCampaign.message && (
+                <p className="mt-1 text-sm font-medium text-[#5D4E6D]/80">{activeCampaign.message}</p>
+              )}
             </div>
           </div>
         </div>
