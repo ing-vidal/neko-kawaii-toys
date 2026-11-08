@@ -31,7 +31,7 @@ export const CAMPAIGN_THEMES = [
     emoji: '🎄',
     headline: 'Una Navidad muy kawaii',
     message: 'Ideas adorables para regalar y compartir esta Navidad.',
-    logoSrc: null,
+    logoSrc: '/images/navidad-logo.svg',
     accent: '#15803d',
     border: '#22c55e',
     surface: '#f0fdf4',
